@@ -1,0 +1,43 @@
+{
+  "name": "rwa-stock-arbitrage",
+  "version": "1.0.0",
+  "description": "BNB Chain Tokenized Stocks (RWA) Arbitrage Suite — Real-Time Market-Hours & Cross-Protocol Spread Engine",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "agent:scan": "node --experimental-strip-types src/agent/wallet-skill.ts",
+    "agent:mcp": "node --experimental-strip-types src/agent/mcp-server.ts"
+  },
+  "keywords": [
+    "bnb-chain",
+    "bsc",
+    "tokenized-stocks",
+    "rwa",
+    "arbitrage",
+    "binance-web3-api",
+    "agentic-wallet",
+    "ondo",
+    "bstocks",
+    "pancakeswap"
+  ],
+  "author": "Arbitrage Inception (Luca Celebrano)",
+  "license": "MIT",
+  "dependencies": {
+    "lucide-react": "^1.17.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "viem": "^2.47.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}
