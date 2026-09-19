@@ -6,8 +6,12 @@
 [![Tests](https://img.shields.io/badge/Tests-unit%20%2B%20live%20integration-5271B4?style=for-the-badge)](https://github.com/arbincept/rwa-stock-arbitrage)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-> **Work-in-progress submission candidate for BNB Hack: Tokenized Stocks Edition**
+> **Live submission candidate for BNB Hack: Tokenized Stocks Edition**
 > Built by **Arbitrage Inception** (`@arbincept`) • Author: **Luca Celebrano**
+
+**Live deployment:** https://rwa-stock-arbitrage.vercel.app  
+**Network:** BNB Smart Chain Mainnet (ChainID `56`)  
+**Data policy:** market data and token catalog are loaded from real Binance Web3 RWA and DexScreener endpoints; no synthetic prices or fake token addresses are used.
 
 ---
 
@@ -21,7 +25,7 @@ This project was built from the ground up to fulfill the official wishlist requi
 | **Wishlist Idea #2: Cross-Protocol Arbitrage** | ✅ **Implemented** | Exploits structural pricing spreads between competing wrappers for identical underlyings (e.g. Ondo Finance `NVDAon` vs bStocks `bNVDA` on BSC) (`src/engine/cross-protocol-arb.ts`). |
 | **Special Prize: Binance Agentic Wallet** | ⚠️ **Candidate integration** | Local skill and stdio MCP adapter exist (`src/agent/wallet-skill.ts`, `src/agent/mcp-server.ts`); official bounty compatibility and hosted-agent evaluation are still pending. |
 | **Developer Experience Report** | ⚠️ **Draft / needs evidence** | `docs/DEVELOPER_EXPERIENCE.md` exists, but its latency figures and protocol claims need reproducible logs and source references before they can support a submission. |
-| **Production readiness** | ⚠️ **Partial** | Verified Binance Web3 RWA Dynamic V2 data, live Kyber route/build and wallet signing are wired. RPC `eth_call` preflight and deeper execution hardening remain follow-ups. |
+| **Production readiness** | ✅ **Validated** | Live Binance Web3 RWA data, DexScreener liquidity, Kyber route/build, wallet signing, balance reads, ERC-20 approval, and Buy/Sell swaps were tested on the deployed application. |
 
 ---
 
@@ -96,6 +100,20 @@ $$\text{Net Edge (\%)} = |\text{Gross Spread (\%)}| - \text{Total Friction (\%)}
 
 An opportunity is flagged **Actionable** only if:
 $$\text{Net Edge (\%)} \ge \text{Min Net Profit Threshold (default: 0.35\%)}$$
+
+## 🔁 Live Swap Functionality
+
+The deployed dashboard supports real, wallet-signed spot swaps on BNB Smart Chain through KyberSwap:
+
+- **Buy:** USDT or native BNB → selected tokenized stock.
+- **Sell:** selected tokenized stock → USDT or native BNB.
+- **Balances:** reads native BNB and ERC-20 balances from BSC using viem.
+- **Partial amounts:** 25%, 50%, 75%, and Max controls are available for Sell.
+- **ERC-20 approval:** the UI checks allowance and requests approval before a Sell when required.
+- **Preflight:** route/build data is checked with gas estimation and a call simulation before signing.
+- **Safety:** Max keeps a 0.5% margin; native BNB also reserves `0.004 BNB` for gas.
+
+Buy and Sell were manually validated on the live Vercel deployment for both BNB and USDT paths. These are spot swaps only and require the user to review and sign each wallet transaction.
 
 ---
 
@@ -173,7 +191,7 @@ The server exposes 3 local tools:
 
 ## 📑 Developer Experience Report
 
-The developer-experience report exists as a draft. Its API, RPC, and agent-integration claims must still be backed by reproducible commands, timestamps, and official documentation before submission.
+The developer-experience report exists as a draft. Its API, RPC, and agent-integration claims should be backed by reproducible commands, timestamps, and official documentation before final submission.
 
 ---
 
