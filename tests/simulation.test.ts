@@ -56,3 +56,16 @@ test("simulateRwaSwap - preserves native BNB transaction value", { skip: !proces
 		assert.notEqual(result.transactionRequest.value, "0x0");
 	}
 });
+
+test("simulateRwaSwap - builds the reverse verified-stock-to-USDT route", { skip: !process.env.RUN_LIVE_TESTS }, async () => {
+	const result = await simulateRwaSwap({
+		...sampleQuote,
+		fromToken: "0xa9ee28c80f960b889dfbd1902055218cba016f75",
+		toToken: "0x55d398326f99059fF775485246999027B3197955",
+		amountIn: "1",
+	}, "0xaff5340ecfaf7ce049261cff193f5fed6bdf04e7");
+
+	assert.equal(result.success, true);
+	assert.ok(Number(result.simulatedAmountOut) > 0);
+	assert.ok("transactionRequest" in result);
+});

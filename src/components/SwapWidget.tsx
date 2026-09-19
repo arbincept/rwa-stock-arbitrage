@@ -46,8 +46,9 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     fontSize: 12,
   };
   const [account, setAccount] = useState<string | null>(null);
-  const [inputAsset, setInputAsset] = useState<'USDT' | 'BNB'>('USDT');
-  const [amountIn, setAmountIn] = useState<string>('500');
+  const [tradeDirection, setTradeDirection] = useState<'BUY' | 'SELL'>('BUY');
+  const [settlementAsset, setSettlementAsset] = useState<'USDT' | 'BNB'>('USDT');
+  const [amountIn, setAmountIn] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [executing, setExecuting] = useState<boolean>(false);
   const [simulation, setSimulation] = useState<any | null>(null);
@@ -77,7 +78,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     setError(null);
     const provider = getProvider();
     if (!provider) {
-      setError('Nessun wallet rilevato. Assicurati che l\'estensione sia sbloccata.');
+      setError('No wallet detected. Unlock your wallet extension and try again.');
       return;
     }
 
@@ -112,11 +113,26 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Connessione rifiutata dall\'utente.');
+      setError(err.message || 'Wallet connection was rejected.');
     }
   };
 
   const selectedStock = stocks.find((stock) => stock.stock.symbol === selectedSymbol) ?? stocks[0];
+  const inputAsset = tradeDirection === 'BUY' ? settlementAsset : selectedSymbol;
+  const outputAsset = tradeDirection === 'BUY' ? selectedSymbol : settlementAsset;
+  const inputToken = tradeDirection === 'BUY'
+    ? (settlementAsset === 'BNB' ? BNB_NATIVE : USDT_BSC)
+    : selectedStock?.stock.address;
+  const outputToken = tradeDirection === 'BUY'
+    ? selectedStock?.stock.address
+    : (settlementAsset === 'BNB' ? BNB_NATIVE : USDT_BSC);
+
+  const resetQuote = () => {
+    setSimulation(null);
+    setPreflighted(false);
+    setTxHash(null);
+    setError(null);
+  };
 
   const handleSimulate = async () => {
     setLoading(true);
@@ -124,13 +140,16 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     setTxHash(null);
     setPreflighted(false);
     try {
-      if (!selectedStock) {
-        throw new Error('Nessun asset RWA verificato disponibile.');
+      if (!selectedStock || !inputToken || !outputToken) {
+        throw new Error('No verified RWA asset is available.');
+      }
+      if (!amountIn || Number(amountIn) <= 0) {
+        throw new Error('Enter an amount greater than zero.');
       }
 
       const quote = {
-        fromToken: inputAsset === 'BNB' ? BNB_NATIVE : USDT_BSC,
-        toToken: selectedStock.stock.address,
+        fromToken: inputToken,
+        toToken: outputToken,
         amountIn: amountIn,
       } as unknown as RwaSwapQuoteResponse;
 
@@ -138,7 +157,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       const sim = await simulateRwaSwap(quote, sender);
       setSimulation(sim);
     } catch (err: any) {
-      setError(err.message || 'Errore durante la simulazione.');
+      setError(err.message || 'Unable to retrieve a live quote.');
     } finally {
       setLoading(false);
     }
@@ -152,7 +171,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     }
 
     if (!simulation || !simulation.transactionRequest) {
-      setError('Esegui prima la simulazione.');
+      setError('Get a live quote before executing the swap.');
       return;
     }
 
@@ -190,7 +209,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       });
       setTxHash(hash);
     } catch (err: any) {
-      setError(err.message || 'Transazione annullata.');
+      setError(err.message || 'Transaction cancelled.');
     } finally {
       setExecuting(false);
     }
@@ -201,14 +220,14 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, borderBottom: '1px solid #263244', paddingBottom: 14, marginBottom: 18 }}>
         <div>
           <h3 style={{ margin: 0, fontSize: 17, color: '#f8fafc' }}>Spot Swap &amp; Simulation Engine</h3>
-          <p style={{ margin: '5px 0 0', fontSize: 12, color: '#94a3b8' }}>KyberSwap Aggregator + 5 bps Arb Inc Fee</p>
+          <p style={{ margin: '5px 0 0', fontSize: 12, color: '#94a3b8' }}>KyberSwap Aggregator · 5 bps Arb Inc fee</p>
         </div>
         {!account ? (
           <button
             onClick={connectWallet}
             style={{ border: 0, borderRadius: 8, background: '#7c3aed', color: '#fff', padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            <Wallet size={14} /> Connect Wallet
+            <Wallet size={14} /> Connect wallet
           </button>
         ) : (
           <span style={{ background: '#0f2d25', border: '1px solid #1f6f55', color: '#6ee7b7', borderRadius: 999, padding: '7px 10px', fontSize: 12, fontFamily: 'ui-monospace, monospace' }}>
@@ -218,21 +237,32 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       </div>
 
       <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: 4, background: '#070b12', border: '1px solid #263244', borderRadius: 10 }}>
+          {(['BUY', 'SELL'] as const).map((direction) => (
+            <button
+              key={direction}
+              type="button"
+              onClick={() => { setTradeDirection(direction); resetQuote(); }}
+              style={{ border: 0, borderRadius: 7, padding: '9px 8px', background: tradeDirection === direction ? '#7c3aed' : 'transparent', color: tradeDirection === direction ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+            >
+              {direction === 'BUY' ? 'Buy RWA stock' : 'Sell RWA stock'}
+            </button>
+          ))}
+        </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6, color: '#94a3b8', fontSize: 12 }}>
-            <span>Pay</span>
-            <select
-              value={inputAsset}
+            <span>{tradeDirection === 'BUY' ? 'Pay with' : 'Sell'}</span>
+            {tradeDirection === 'BUY' ? <select
+              value={settlementAsset}
               onChange={(e) => {
-                setInputAsset(e.target.value as 'USDT' | 'BNB');
-                setSimulation(null);
-                setPreflighted(false);
+                setSettlementAsset(e.target.value as 'USDT' | 'BNB');
+                resetQuote();
               }}
               style={selectStyle}
             >
               <option value="USDT">USDT</option>
               <option value="BNB">BNB</option>
-            </select>
+            </select> : <strong style={{ color: '#c4b5fd' }}>{selectedSymbol}</strong>}
             <span>BSC Mainnet</span>
           </div>
           <div style={{ position: 'relative' }}>
@@ -258,13 +288,12 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6, color: '#94a3b8', fontSize: 12 }}>
-            <span>Receive (Target Asset)</span>
-            <select
+            <span>{tradeDirection === 'BUY' ? 'Receive' : 'Receive'}</span>
+            {tradeDirection === 'BUY' ? <select
               value={selectedSymbol}
               onChange={(e) => {
                 onSelectStock(e.target.value);
-                setSimulation(null);
-                setPreflighted(false);
+                resetQuote();
               }}
               style={{ ...selectStyle, maxWidth: '64%' }}
             >
@@ -273,11 +302,21 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
                   {s.stock.symbol} ({s.stock.platform})
                 </option>
               ))}
-            </select>
+            </select> : <select
+              value={settlementAsset}
+              onChange={(e) => {
+                setSettlementAsset(e.target.value as 'USDT' | 'BNB');
+                resetQuote();
+              }}
+              style={selectStyle}
+            >
+              <option value="USDT">USDT</option>
+              <option value="BNB">BNB</option>
+            </select>}
           </div>
           <div style={{ ...fieldStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#c4b5fd' }}>
-            <span>{simulation ? simulation.simulatedAmountOut : '0.00'}</span>
-            <span style={{ color: '#94a3b8', fontSize: 12, fontFamily: 'inherit' }}>{selectedSymbol} (BSC)</span>
+            <span>{simulation ? simulation.simulatedAmountOut : '—'}</span>
+            <span style={{ color: '#94a3b8', fontSize: 12, fontFamily: 'inherit' }}>{outputAsset}</span>
           </div>
         </div>
 
@@ -287,7 +326,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
           style={{ width: '100%', border: '1px solid #3b4960', borderRadius: 9, background: '#1e293b', color: '#c4b5fd', padding: '11px 12px', fontSize: 13, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
           {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-          {loading ? 'Sto cercando il miglior percorso...' : `Ottieni quote live ${selectedSymbol}`}
+          {loading ? 'Finding the best route...' : `Get live ${tradeDirection === 'BUY' ? 'buy' : 'sell'} quote`}
         </button>
       </div>
 
@@ -295,24 +334,24 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         <div style={{ background: '#070b12', border: '1px solid #263244', borderRadius: 10, padding: 14, fontSize: 13, display: 'grid', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: simulation.success ? '#6ee7b7' : '#fca5a5', fontWeight: 750 }}>
             <CheckCircle2 size={16} />
-            {simulation.success ? (preflighted ? 'Preflight RPC Superato' : 'Calldata Kyber Generato') : 'Errore Simulazione'}
+            {simulation.success ? (preflighted ? 'RPC preflight passed' : 'Live quote ready') : 'Quote failed'}
           </div>
           {simulation.success && (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div style={{ background: '#111827', borderRadius: 8, padding: 10 }}>
-                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>Riceverai circa</div>
-                  <strong style={{ color: '#c4b5fd', fontSize: 16 }}>{simulation.simulatedAmountOut} {selectedSymbol}</strong>
+                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>Estimated output</div>
+                  <strong style={{ color: '#c4b5fd', fontSize: 16 }}>{simulation.simulatedAmountOut} {outputAsset}</strong>
                 </div>
                 <div style={{ background: '#111827', borderRadius: 8, padding: 10 }}>
-                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>Minimo accettato</div>
-                  <strong style={{ color: '#f8fafc', fontSize: 16 }}>{simulation.minAmountOutGuaranteed} {selectedSymbol}</strong>
+                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>Minimum received</div>
+                  <strong style={{ color: '#f8fafc', fontSize: 16 }}>{simulation.minAmountOutGuaranteed} {outputAsset}</strong>
                 </div>
               </div>
               <div style={{ display: 'grid', gap: 5, color: '#cbd5e1' }}>
-                <div><strong>Costo rete stimato:</strong> ${Number(simulation.estimatedGasCostUsd || 0).toFixed(2)} ({simulation.estimatedGasCostBnb} BNB)</div>
-                <div><strong>Protezione prezzo:</strong> minimo garantito con slippage massimo dello 0,5%</div>
-                <div style={{ color: '#94a3b8' }}><strong>Prossimo passo:</strong> collega il wallet, poi esegui il preflight prima della firma.</div>
+                <div><strong>Estimated network cost:</strong> ${Number(simulation.estimatedGasCostUsd || 0).toFixed(2)} ({simulation.estimatedGasCostBnb} BNB)</div>
+                <div><strong>Price protection:</strong> minimum output with a maximum 0.5% slippage</div>
+                <div style={{ color: '#94a3b8' }}><strong>Next:</strong> connect your wallet, then run the preflight before signing.</div>
               </div>
               <details style={{ color: '#64748b', fontSize: 11 }}>
                 <summary style={{ cursor: 'pointer' }}>Dettagli tecnici</summary>
@@ -328,7 +367,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
 
       {txHash && (
         <div style={{ background: '#06251c', border: '1px solid #166534', color: '#86efac', padding: 10, borderRadius: 9, fontSize: 12, wordBreak: 'break-word' }}>
-          🎉 Tx Inviata! Hash: <a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer" className="underline">{txHash}</a>
+          Transaction sent. Hash: <a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer" style={{ color: '#bbf7d0', textDecoration: 'underline' }}>{txHash}</a>
         </div>
       )}
 
@@ -339,7 +378,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
           style={{ width: '100%', border: 0, borderRadius: 9, background: 'linear-gradient(90deg, #7c3aed, #4f46e5)', color: '#fff', padding: '12px', fontSize: 13, fontWeight: 800, cursor: executing ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
           <ShieldCheck size={16} />
-          {executing ? 'Firma nel wallet...' : `Esegui ${selectedSymbol} Swap su BSC Mainnet`}
+          {executing ? 'Waiting for wallet signature...' : `Execute ${tradeDirection === 'BUY' ? 'buy' : 'sell'} on BSC`}
         </button>
       )}
     </div>

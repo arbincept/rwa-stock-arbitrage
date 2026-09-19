@@ -206,6 +206,7 @@ export class BinanceRwaClient {
 		]);
 
 		const officialRwaData: Record<string, { tokenPrice?: number; stockPrice?: number }> = {};
+		const dexData: Record<string, { liquidityUsd: number; volume24hUsd: number }> = {};
 		await Promise.allSettled(
 			VERIFIED_BSC_STOCKS.map(async (stock) => {
 				const path = `/bapi/defi/v2/public/wallet-direct/buw/wallet/market/token/rwa/dynamic/ai?chainId=56&contractAddress=${stock.address}`;
@@ -227,6 +228,27 @@ export class BinanceRwaClient {
 					};
 				} catch {
 					// Public Binance RWA data is unavailable; retain the secondary feed.
+				}
+			}),
+		);
+
+		await Promise.allSettled(
+			VERIFIED_BSC_STOCKS.map(async (stock) => {
+				try {
+					const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${stock.address}`, {
+						signal: AbortSignal.timeout(3000),
+					});
+					if (!res.ok) return;
+					const json = (await res.json()) as {
+						pairs?: Array<{ chainId?: string; liquidity?: { usd?: number }; volume?: { h24?: number } }>;
+					};
+					const bscPairs = (json.pairs ?? []).filter((pair) => pair.chainId === "bsc");
+					dexData[stock.symbol] = {
+						liquidityUsd: bscPairs.reduce((total, pair) => total + (Number(pair.liquidity?.usd) || 0), 0),
+						volume24hUsd: bscPairs.reduce((total, pair) => total + (Number(pair.volume?.h24) || 0), 0),
+					};
+				} catch {
+					// DEX liquidity data is optional; do not fabricate a value when unavailable.
 				}
 			}),
 		);
@@ -264,6 +286,7 @@ export class BinanceRwaClient {
 			const realTickerPrice = apiPrices[stock.symbol];
 			
 			const onChainPrice = official?.tokenPrice ?? realTickerPrice ?? tradFiPrice;
+			const liveDexData = dexData[stock.symbol];
 
 			const spreadUsd = parseFloat((onChainPrice - tradFiPrice).toFixed(2));
 			const spreadPct = parseFloat(((spreadUsd / tradFiPrice) * 100).toFixed(2));
@@ -273,8 +296,8 @@ export class BinanceRwaClient {
 				tradFiRefPriceUsd: tradFiPrice,
 				spreadPct,
 				spreadUsd,
-				volume24hUsd: 0,
-				liquidityDepthUsd: 0,
+				volume24hUsd: liveDexData?.volume24hUsd ?? 0,
+				liquidityDepthUsd: liveDexData?.liquidityUsd ?? 0,
 				marketStatus: marketInfo.status,
 				nextMarketOpenUtc: marketInfo.nextOpen,
 				lastUpdated: now,

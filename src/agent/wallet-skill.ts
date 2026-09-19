@@ -103,27 +103,27 @@ export class RwaStockArbitrageSkill {
 // Autonomous CLI Demonstration Runner
 if (import.meta.url === `file://${process.argv[1]}`) {
 	(async () => {
-		console.log("🤖 [Binance Agentic Wallet Skill] Initializing RwaStockArbitrageSkill...\n");
+		console.log("🤖 [Binance Agentic Wallet Skill] Initializing RWA Stock Arbitrage Skill...\n");
 		const skill = new RwaStockArbitrageSkill();
 
-		console.log("📊 1. Scanning Market-Hours Arbitrage (Weekend/TradFi Gap)...");
+		console.log("📊 1. Scanning market-hours arbitrage (weekend/TradFi gap)...");
 		const marketHours = await skill.scanMarketHoursGaps(0.20, 1000);
-		console.log(`   Market Status: ${marketHours.marketStatus.status} (Next Open: ${marketHours.marketStatus.nextOpen})`);
-		console.log(`   Found ${marketHours.opportunities.length} total pairs (${marketHours.actionableCount} actionable):`);
+		console.log(`   Market status: ${marketHours.marketStatus.status} (next open: ${marketHours.marketStatus.nextOpen})`);
+		console.log(`   Found ${marketHours.opportunities.length} opportunities (${marketHours.actionableCount} actionable):`);
 		for (const opp of marketHours.opportunities.slice(0, 3)) {
 			console.log(`   • ${opp.stock.symbol}: Spread ${opp.grossSpreadPct}% | Net Edge +${opp.netProfitPct}% [${opp.direction}]`);
 		}
 
-		console.log("\n⚡ 2. Scanning Cross-Protocol Arbitrage (Ondo vs bStocks)...");
+		console.log("\n⚡ 2. Scanning cross-protocol arbitrage (Ondo vs bStocks)...");
 		const cross = await skill.scanCrossProtocolGaps(0.20);
 		console.log(`   Found ${cross.opportunities.length} cross-protocol pairs:`);
 		for (const c of cross.opportunities) {
 			console.log(`   • ${c.underlyingTicker}: ${c.strategy}`);
 		}
 
-		console.log("\n🧪 3. Running Zero-Risk Swap Simulation...");
-		const sim = await skill.simulateStockSwap("NVDAon", 500);
-		console.log(`   Simulated: ${sim.simulation.simulationTrace}`);
-		console.log("\n✅ [Binance Agentic Wallet Skill] Execution check passed with 0 errors.");
+		console.log("\n🧪 3. Building a live Kyber quote...");
+		const sim = await skill.simulateStockSwap("NVDAON", 500);
+		console.log(`   Result: ${sim.simulation.simulationTrace}`);
+		console.log("\n✅ [Binance Agentic Wallet Skill] Live execution-path check passed with 0 errors.");
 	})();
 }

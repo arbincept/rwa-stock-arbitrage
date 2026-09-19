@@ -24,7 +24,7 @@ export async function simulateRwaSwap(quote: RwaSwapQuoteResponse, senderAddress
 				gasUsed: 0n,
 				estimatedGasCostBnb: "0",
 				estimatedGasCostUsd: 0,
-				simulationTrace: `[ERROR] Nessuna route trovata per lo swap.`
+				simulationTrace: `[ERROR] No route was found for this swap.`
 			};
 		}
 
@@ -56,7 +56,7 @@ export async function simulateRwaSwap(quote: RwaSwapQuoteResponse, senderAddress
 				gasUsed: 0n,
 				estimatedGasCostBnb: "0",
 				estimatedGasCostUsd: 0,
-				simulationTrace: `[ERROR] Fallimento nella generazione del calldata (Anti-Phantom Pool).`
+				simulationTrace: `[ERROR] Kyber calldata generation failed. The route was rejected.`
 			};
 		}
 
@@ -73,11 +73,11 @@ export async function simulateRwaSwap(quote: RwaSwapQuoteResponse, senderAddress
 			gasUsed: BigInt(routeSummary.gas || 250000),
 			estimatedGasCostBnb: ((Number(routeSummary.gas || 0) * Number(routeSummary.gasPrice || 0)) / 1e18).toFixed(6),
 			estimatedGasCostUsd: Number(buildData.data?.gasUsd || routeSummary.gasUsd || 0),
-			simulationTrace: `[AGENT CALL-DATA GENERATED] Transazione Web3 pronta per la firma.
-📍 Target Router: ${routerAddress}
-💎 Expected Out: ${expectedOutStr} (al netto dello slippage)
-⛽ Gas Est: ${routeSummary.gas} units
-💼 Fee Receiver (Arb Inc): ${FEE_RECEIVER} (${FEE_BPS} bps)`,
+			simulationTrace: `[AGENT CALL-DATA GENERATED] Web3 transaction ready for wallet signature.
+📍 Target router: ${routerAddress}
+💎 Expected output: ${expectedOutStr} after slippage protection
+⛽ Estimated gas: ${routeSummary.gas} units
+💼 Fee recipient (Arb Inc): ${FEE_RECEIVER} (${FEE_BPS} bps)`,
 			transactionRequest: {
 				to: routerAddress,
 				data: txData,
