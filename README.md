@@ -128,7 +128,7 @@ Live checks query Kyber route/build and the public market feeds. They require ne
 ```bash
 npm run dev
 ```
-Visit `http://localhost:5173` to explore the dashboard with live public ticker data where available, benchmark data, and a dry-run swap widget. The UI must not be interpreted as proof that every wrapper has a live executable route.
+Visit `http://localhost:5173` to explore the dashboard with live Binance RWA data, benchmark data, and a Kyber-backed swap widget supporting USDT and native BNB input. The wallet preflight runs before any user-signed transaction.
 
 ### 5. Build for Production
 ```bash

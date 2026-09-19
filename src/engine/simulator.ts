@@ -71,8 +71,8 @@ export async function simulateRwaSwap(quote: RwaSwapQuoteResponse, senderAddress
 			isSlippageProtected: true,
 			simulatedTimestamp: Date.now(),
 			gasUsed: BigInt(routeSummary.gas || 250000),
-			estimatedGasCostBnb: "0.0005",
-			estimatedGasCostUsd: 0.32,
+			estimatedGasCostBnb: ((Number(routeSummary.gas || 0) * Number(routeSummary.gasPrice || 0)) / 1e18).toFixed(6),
+			estimatedGasCostUsd: Number(buildData.data?.gasUsd || routeSummary.gasUsd || 0),
 			simulationTrace: `[AGENT CALL-DATA GENERATED] Transazione Web3 pronta per la firma.
 📍 Target Router: ${routerAddress}
 💎 Expected Out: ${expectedOutStr} (al netto dello slippage)
@@ -81,7 +81,7 @@ export async function simulateRwaSwap(quote: RwaSwapQuoteResponse, senderAddress
 			transactionRequest: {
 				to: routerAddress,
 				data: txData,
-				value: "0x0"
+				value: `0x${BigInt(buildData.data?.transactionValue || "0").toString(16)}`,
 			}
 		};
 	} catch (e: any) {

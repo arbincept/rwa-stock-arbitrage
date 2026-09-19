@@ -11,6 +11,7 @@ interface SwapWidgetProps {
 
 const BSC_CHAIN_ID = '0x38'; // 56
 const USDT_BSC = '0x55d398326f99059fF775485246999027B3197955' as const;
+const BNB_NATIVE = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const;
 
 export const SwapWidget: React.FC<SwapWidgetProps> = ({
   stocks,
@@ -18,6 +19,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   onSelectStock,
 }) => {
   const [account, setAccount] = useState<string | null>(null);
+  const [inputAsset, setInputAsset] = useState<'USDT' | 'BNB'>('USDT');
   const [amountIn, setAmountIn] = useState<string>('500');
   const [loading, setLoading] = useState<boolean>(false);
   const [executing, setExecuting] = useState<boolean>(false);
@@ -100,7 +102,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       }
 
       const quote = {
-        fromToken: USDT_BSC,
+        fromToken: inputAsset === 'BNB' ? BNB_NATIVE : USDT_BSC,
         toToken: selectedStock.stock.address,
         amountIn: amountIn,
       } as unknown as RwaSwapQuoteResponse;
@@ -191,17 +193,33 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       <div className="space-y-3">
         <div>
           <div className="flex justify-between text-xs text-slate-400 mb-1">
-            <span>Pay (USDT)</span>
+            <span>Pay</span>
+            <select
+              value={inputAsset}
+              onChange={(e) => {
+                setInputAsset(e.target.value as 'USDT' | 'BNB');
+                setSimulation(null);
+                setPreflighted(false);
+              }}
+              className="bg-slate-950 border border-slate-800 text-xs text-purple-300 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer"
+            >
+              <option value="USDT">USDT</option>
+              <option value="BNB">BNB</option>
+            </select>
             <span>BSC Mainnet</span>
           </div>
           <div className="relative">
             <input
               type="number"
               value={amountIn}
-              onChange={(e) => setAmountIn(e.target.value)}
+              onChange={(e) => {
+                setAmountIn(e.target.value);
+                setSimulation(null);
+                setPreflighted(false);
+              }}
               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500 font-mono"
             />
-            <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">USDT</span>
+            <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">{inputAsset}</span>
           </div>
         </div>
 
@@ -216,7 +234,11 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
             <span>Receive (Target Asset)</span>
             <select
               value={selectedSymbol}
-              onChange={(e) => onSelectStock(e.target.value)}
+              onChange={(e) => {
+                onSelectStock(e.target.value);
+                setSimulation(null);
+                setPreflighted(false);
+              }}
               className="bg-slate-950 border border-slate-800 text-xs text-purple-300 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer"
             >
               {stocks && stocks.map((s) => (

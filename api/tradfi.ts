@@ -1,4 +1,11 @@
-import { FALLBACK_TRADFI_BENCHMARKS } from "../src/client/live-market-feed.ts";
+const FALLBACK_TRADFI_BENCHMARKS: Record<string, { refPrice: number; prevClose: number }> = {
+	NVDA: { refPrice: 222.27, prevClose: 219.34 },
+	AAPL: { refPrice: 336.13, prevClose: 337.00 },
+	TSLA: { refPrice: 364.27, prevClose: 366.20 },
+	SPY: { refPrice: 761.69, prevClose: 760.71 },
+	COIN: { refPrice: 194.25, prevClose: 173.97 },
+	MSFT: { refPrice: 493.78, prevClose: 497.75 },
+};
 
 export default async function handler(req: any, res: any) {
 	// Set permissive CORS headers for Vercel deployment

@@ -42,3 +42,17 @@ test("simulateRwaSwap - returns a safe failure for an unavailable route", { skip
 	assert.equal(result.success, false);
 	assert.equal(result.isSlippageProtected, false);
 });
+
+test("simulateRwaSwap - preserves native BNB transaction value", { skip: !process.env.RUN_LIVE_TESTS }, async () => {
+	const result = await simulateRwaSwap({
+		...sampleQuote,
+		fromToken: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+		amountIn: "1",
+	}, "0xaff5340ecfaf7ce049261cff193f5fed6bdf04e7");
+
+	assert.equal(result.success, true);
+	assert.ok("transactionRequest" in result);
+	if ("transactionRequest" in result) {
+		assert.notEqual(result.transactionRequest.value, "0x0");
+	}
+});
