@@ -33,73 +33,64 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const getProvider = () => {
+    if (typeof window === 'undefined') return null;
+    const win = window as any;
+    return win.ethereum || win.BinanceChain || null;
+  };
+
   useEffect(() => {
-    checkConnection();
-    const eth = (window as any).ethereum;
-    if (eth) {
-      eth.on?.('accountsChanged', (accounts: string[]) => {
-        setAccount(accounts[0] || null);
-      });
-      eth.on?.('chainChanged', () => {
-        window.location.reload();
-      });
+    const provider = getProvider();
+    if (provider) {
+      provider.request({ method: 'eth_accounts' }).then((accs: string[]) => {
+        if (accs && accs.length > 0) setAccount(accs[0]);
+      }).catch(console.error);
+
+      provider.on?.('accountsChanged', (accs: string[]) => setAccount(accs[0] || null));
+      provider.on?.('chainChanged', () => window.location.reload());
     }
   }, []);
 
-  const checkConnection = async () => {
-    const eth = (window as any).ethereum;
-    if (typeof window !== 'undefined' && eth) {
-      try {
-        const accounts = await eth.request({ method: 'eth_accounts' });
-        if (accounts && accounts.length > 0) {
-          setAccount(accounts[0]);
-        }
-      } catch (err) {
-        console.error('Error checking wallet connection:', err);
-      }
-    }
-  };
-
   const connectWallet = async () => {
     setError(null);
-    const eth = (window as any).ethereum;
-    if (typeof window === 'undefined' || !eth) {
-      setError('Nessun wallet Web3 rilevato. Installa MetaMask o Binance Wallet.');
+    const provider = getProvider();
+    if (!provider) {
+      setError('Nessun wallet rilevato. Assicurati che l\'estensione sia sbloccata.');
       return;
     }
 
     try {
-      const accounts = await eth.request({ method: 'eth_requestAccounts' });
-      setAccount(accounts[0]);
+      const accounts = await provider.request({ method: 'eth_requestAccounts' });
+      if (accounts && accounts.length > 0) {
+        setAccount(accounts[0]);
+      }
 
-      const chainId = await eth.request({ method: 'eth_chainId' });
+      const chainId = await provider.request({ method: 'eth_chainId' });
       if (chainId !== BSC_CHAIN_ID) {
         try {
-          await eth.request({
+          await provider.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: BSC_CHAIN_ID }],
           });
-        } catch (switchError: any) {
-          if (switchError.code === 4902) {
-            await eth.request({
+        } catch (switchErr: any) {
+          if (switchErr.code === 4902 || switchErr.code === -32603) {
+            await provider.request({
               method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: BSC_CHAIN_ID,
-                  chainName: 'Binance Smart Chain Mainnet',
-                  nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                  blockExplorerUrls: ['https://bscscan.com/'],
-                },
-              ],
+              params: [{
+                chainId: BSC_CHAIN_ID,
+                chainName: 'Binance Smart Chain Mainnet',
+                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com/'],
+              }],
             });
           } else {
-            throw switchError;
+            throw switchErr;
           }
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Errore durante la connessione al wallet.');
+      setError(err.message || 'Connessione rifiutata dall\'utente.');
     }
   };
 
@@ -127,13 +118,14 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   };
 
   const handleExecuteSwap = async () => {
-    if (!account) {
+    const provider = getProvider();
+    if (!account || !provider) {
       await connectWallet();
-      if (!account) return;
+      return;
     }
 
     if (!simulation || !simulation.transactionRequest) {
-      setError('Esegui prima la simulazione per generare il calldata.');
+      setError('Esegui prima la simulazione.');
       return;
     }
 
@@ -143,21 +135,18 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
 
     try {
       const txRequest = simulation.transactionRequest;
-      const eth = (window as any).ethereum;
-      const hash = await eth.request({
+      const hash = await provider.request({
         method: 'eth_sendTransaction',
-        params: [
-          {
-            from: account,
-            to: txRequest.to,
-            data: txRequest.data,
-            value: txRequest.value || '0x0',
-          },
-        ],
+        params: [{
+          from: account,
+          to: txRequest.to,
+          data: txRequest.data,
+          value: txRequest.value || '0x0',
+        }],
       });
       setTxHash(hash);
     } catch (err: any) {
-      setError(err.message || 'Transazione annullata o fallita.');
+      setError(err.message || 'Transazione annullata.');
     } finally {
       setExecuting(false);
     }
@@ -173,9 +162,9 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         {!account ? (
           <button
             onClick={connectWallet}
-            className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-lg shadow-purple-900/20"
+            className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-lg shadow-purple-900/20 cursor-pointer"
           >
-            <Wallet className="w-3.5 h-3.5" /> Connect
+            <Wallet className="w-3.5 h-3.5" /> Connect Wallet
           </button>
         ) : (
           <span className="bg-slate-800 border border-slate-700 text-xs px-2.5 py-1 rounded-full text-emerald-400 font-mono">
@@ -213,7 +202,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
             <select
               value={selectedSymbol}
               onChange={(e) => onSelectStock(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-xs text-purple-300 rounded px-1.5 py-0.5 focus:outline-none"
+              className="bg-slate-950 border border-slate-800 text-xs text-purple-300 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer"
             >
               {stocks && stocks.map((s) => (
                 <option key={s.stock.symbol} value={s.stock.symbol}>
@@ -231,7 +220,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         <button
           onClick={handleSimulate}
           disabled={loading}
-          className="w-full bg-slate-800 hover:bg-slate-700 text-purple-300 font-medium py-2 rounded-lg text-sm transition border border-slate-700 flex items-center justify-center gap-2"
+          className="w-full bg-slate-800 hover:bg-slate-700 text-purple-300 font-medium py-2 rounded-lg text-sm transition border border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
         >
           {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
           {loading ? 'Simulazione in corso...' : `Simula Zero-Risk ${selectedSymbol} Swap`}
@@ -262,7 +251,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         <button
           onClick={handleExecuteSwap}
           disabled={executing}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 cursor-pointer"
         >
           <ShieldCheck className="w-4 h-4" />
           {executing ? 'Firma nel wallet...' : `Esegui ${selectedSymbol} Swap su BSC Mainnet`}
