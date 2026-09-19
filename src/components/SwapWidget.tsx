@@ -287,19 +287,40 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
           style={{ width: '100%', border: '1px solid #3b4960', borderRadius: 9, background: '#1e293b', color: '#c4b5fd', padding: '11px 12px', fontSize: 13, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
           {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-          {loading ? 'Simulazione in corso...' : `Simula Zero-Risk ${selectedSymbol} Swap`}
+          {loading ? 'Sto cercando il miglior percorso...' : `Ottieni quote live ${selectedSymbol}`}
         </button>
       </div>
 
       {simulation && (
-        <div style={{ background: '#070b12', border: '1px solid #263244', borderRadius: 10, padding: 12, fontSize: 12, fontFamily: 'ui-monospace, monospace', display: 'grid', gap: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6ee7b7', fontWeight: 700 }}>
+        <div style={{ background: '#070b12', border: '1px solid #263244', borderRadius: 10, padding: 14, fontSize: 13, display: 'grid', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: simulation.success ? '#6ee7b7' : '#fca5a5', fontWeight: 750 }}>
             <CheckCircle2 size={16} />
             {simulation.success ? (preflighted ? 'Preflight RPC Superato' : 'Calldata Kyber Generato') : 'Errore Simulazione'}
           </div>
-          <div style={{ color: '#cbd5e1' }}>Min Out: {simulation.minAmountOutGuaranteed}</div>
-          <div style={{ color: '#cbd5e1' }}>Est. Gas: {simulation.gasUsed?.toString()} units</div>
-          <div style={{ color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis' }}>Router: {simulation.transactionRequest?.to}</div>
+          {simulation.success && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div style={{ background: '#111827', borderRadius: 8, padding: 10 }}>
+                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>Riceverai circa</div>
+                  <strong style={{ color: '#c4b5fd', fontSize: 16 }}>{simulation.simulatedAmountOut} {selectedSymbol}</strong>
+                </div>
+                <div style={{ background: '#111827', borderRadius: 8, padding: 10 }}>
+                  <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>Minimo accettato</div>
+                  <strong style={{ color: '#f8fafc', fontSize: 16 }}>{simulation.minAmountOutGuaranteed} {selectedSymbol}</strong>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gap: 5, color: '#cbd5e1' }}>
+                <div><strong>Costo rete stimato:</strong> ${Number(simulation.estimatedGasCostUsd || 0).toFixed(2)} ({simulation.estimatedGasCostBnb} BNB)</div>
+                <div><strong>Protezione prezzo:</strong> minimo garantito con slippage massimo dello 0,5%</div>
+                <div style={{ color: '#94a3b8' }}><strong>Prossimo passo:</strong> collega il wallet, poi esegui il preflight prima della firma.</div>
+              </div>
+              <details style={{ color: '#64748b', fontSize: 11 }}>
+                <summary style={{ cursor: 'pointer' }}>Dettagli tecnici</summary>
+                <div style={{ marginTop: 7, overflowWrap: 'anywhere' }}>Router Kyber: {simulation.transactionRequest?.to}</div>
+                <div>Gas stimato: {simulation.gasUsed?.toString()} unità</div>
+              </details>
+            </>
+          )}
         </div>
       )}
 
