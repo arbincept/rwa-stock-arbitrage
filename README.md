@@ -6,7 +6,7 @@
 [![Tests](https://img.shields.io/badge/Tests-17%20Passed%20(100%25)-success?style=for-the-badge)](https://github.com/arbincept/rwa-stock-arbitrage)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-> **Official Submission for BNB Hack: Tokenized Stocks Edition ($20,000 Main Prize Pool + $2,000 Binance Agentic Wallet Special Bounty)**  
+> **Work-in-progress submission candidate for BNB Hack: Tokenized Stocks Edition**
 > Built by **Arbitrage Inception** (`@arbincept`) • Author: **Luca Celebrano**
 
 ---
@@ -19,9 +19,9 @@ This project was built from the ground up to fulfill the official wishlist requi
 | :--- | :---: | :--- |
 | **Wishlist Idea #1: Market-Hours Arbitrage** | ✅ **Implemented** | Identifies 24/7 on-chain BSC price divergence vs frozen US TradFi market close (NYSE/NASDAQ) during weekends and after-hours (`src/engine/market-hours-arb.ts`). |
 | **Wishlist Idea #2: Cross-Protocol Arbitrage** | ✅ **Implemented** | Exploits structural pricing spreads between competing wrappers for identical underlyings (e.g. Ondo Finance `NVDAon` vs bStocks `bNVDA` on BSC) (`src/engine/cross-protocol-arb.ts`). |
-| **Special Prize: Binance Agentic Wallet ($2,000)** | ✅ **Implemented** | Exposes standardized `@binance/wallet-skills` and Model Context Protocol (MCP) server for autonomous AI agents (`src/agent/wallet-skill.ts`, `src/agent/mcp-server.ts`). |
-| **Developer Experience Report (25% Score)** | ✅ **Documented** | Comprehensive, authentic technical report on Binance Web3 API, RPC latency, and developer friction (`docs/DEVELOPER_EXPERIENCE.md`). |
-| **Zero Mocks & Production Ready** | ✅ **Verified** | Real BSC token contracts, real mathematical gas models (Wei -> BNB -> USD), real slippage bounds, 17/17 automated tests passing. |
+| **Special Prize: Binance Agentic Wallet** | ⚠️ **Candidate integration** | Local skill and stdio MCP adapter exist (`src/agent/wallet-skill.ts`, `src/agent/mcp-server.ts`); official bounty compatibility and hosted-agent evaluation are still pending. |
+| **Developer Experience Report** | ⚠️ **Draft / needs evidence** | `docs/DEVELOPER_EXPERIENCE.md` exists, but its latency figures and protocol claims need reproducible logs and source references before they can support a submission. |
+| **Production readiness** | ⚠️ **Partial** | Verified BSC catalog entries and public Binance tickers are used where available. Swap quotes are dry-run calculations, not executable or RPC-simulated swaps. |
 
 ---
 
@@ -75,16 +75,7 @@ Our suite monitors verified tokenized stock contracts deployed on **BNB Smart Ch
 
 | Underlying | Protocol | BSC Token Symbol | Contract Address | Venue / Routing |
 | :--- | :--- | :--- | :--- | :--- |
-| **Nvidia** | Ondo Finance | `NVDAon` | `0x1111111111111111111111111111111111111111` | PancakeSwap X (RFQ) |
-| **Nvidia** | bStocks | `bNVDA` | `0x2222222222222222222222222222222222222222` | PancakeSwap V3 (AMM) |
-| **Tesla** | bStocks | `TSLAB` | `0x1122334455667788990011223344556677889900` | PancakeSwap V3 (AMM) |
-| **Tesla** | xStocks | `xTSLA` | `0x4455667788990011223344556677889900112233` | PancakeSwap V3 (AMM) |
-| **Apple** | Ondo Finance | `AAPLon` | `0x3333333333333333333333333333333333333333` | PancakeSwap X (RFQ) |
-| **Apple** | bStocks | `bAAPL` | `0x5555555555555555555555555555555555555555` | PancakeSwap V3 (AMM) |
-| **S&P 500 ETF** | Ondo Finance | `SPYon` | `0x5555555555555555555555555555555555555555` | PancakeSwap X (RFQ) |
-| **S&P 500 ETF** | bStocks | `bSPY` | `0x7777777777777777777777777777777777777777` | PancakeSwap V3 (AMM) |
-| **Coinbase** | Ondo Finance | `COINon` | `0x7777777777777777777777777777777777777777` | PancakeSwap X (RFQ) |
-| **Microsoft** | Ondo Finance | `MSFTon` | `0x9999999999999999999999999999999999999999` | PancakeSwap X (RFQ) |
+The source of truth for the current BSC catalog is `VERIFIED_BSC_STOCKS` in `src/client/binance-rwa-client.ts`, checked against Binance's public RWA catalog. Do not copy contract addresses from this README: the catalog is intentionally maintained in code and must be revalidated before each release.
 
 ---
 
@@ -150,7 +141,7 @@ npm test
 ```bash
 npm run dev
 ```
-Visit `http://localhost:5173` to explore the live cyberpunk dashboard with real-time spread cards, ticker table, and 1-click dry-run swap widget.
+Visit `http://localhost:5173` to explore the dashboard with live public ticker data where available, benchmark data, and a dry-run swap widget. The UI must not be interpreted as proof that every wrapper has a live executable route.
 
 ### 4. Build for Production
 ```bash
@@ -195,13 +186,7 @@ The server exposes 3 standard tools:
 
 ## 📑 Developer Experience Report
 
-A mandatory 25% component of the hackathon evaluation is the **Developer Experience Report**. Our detailed evaluation covers:
-- Onboarding & API Key Provisioning
-- BSC RPC Performance & Latency Benchmarks (p50: 84ms, p95: 210ms)
-- Ondo (RFQ) vs bStocks (AMM) Liquidity Architecture
-- Practical Feedback for the `@binance/wallet-skills` SDK
-
-👉 **Read the full report:** [`docs/DEVELOPER_EXPERIENCE.md`](docs/DEVELOPER_EXPERIENCE.md)
+The developer-experience report exists as a draft. Its API, RPC, and agent-integration claims must still be backed by reproducible commands, timestamps, and official documentation before submission.
 
 ---
 
@@ -209,7 +194,7 @@ A mandatory 25% component of the hackathon evaluation is the **Developer Experie
 
 - **Spot Only (No Perps):** In strict accordance with the hackathon rules, all mechanisms focus exclusively on spot tokenized assets.
 - **Slippage Enforced:** Swap quotes strictly enforce `minAmountOut = expectedAmountOut * (1 - slippage / 100)`.
-- **Zero Real Funds at Risk during Simulation:** The `simulator.ts` module dry-runs calls without requiring private key signatures.
+- **Zero Real Funds at Risk during Simulation:** The `simulator.ts` module calculates a dry-run result without requiring private key signatures. It does not call a DEX router, perform an `eth_call`, or submit a transaction.
 
 ---
 

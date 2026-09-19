@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type {
 	RwaSwapQuoteRequest,
 	RwaSwapQuoteResponse,
@@ -14,9 +15,9 @@ import {
 
 export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 	{
-		symbol: "NVDAon",
+		symbol: "NVDAON",
 		name: "Nvidia Tokenized Stock (Ondo/BSC)",
-		address: "0x12c4cE7F14C4569B738096A44a958e0a11eC6356",
+		address: "0xa9ee28c80f960b889dfbd1902055218cba016f75",
 		underlyingTicker: "NVDA",
 		platform: "Ondo",
 		category: "Semiconductor",
@@ -25,20 +26,31 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 		underlyingCompanyName: "NVIDIA Corporation",
 	},
 	{
-		symbol: "bNVDA",
-		name: "Nvidia Tokenized Stock (bStock)",
-		address: "0x15fD673752e5E435165c79A6372dCE7d3F376d21",
+		symbol: "NVDAB",
+		name: "Nvidia Tokenized Stock (Binance bStock)",
+		address: "0x02fca66c1d1afb4e2a7884261eb00f63598a7436",
 		underlyingTicker: "NVDA",
 		platform: "BStock",
 		category: "Semiconductor",
 		decimals: 18,
 		referencePriceSource: "NASDAQ",
 		underlyingCompanyName: "NVIDIA Corporation",
+	},
+	{
+		symbol: "TSLAON",
+		name: "Tesla Tokenized Stock (Ondo/BSC)",
+		address: "0x2494b603319d4d9f9715c9f4496d9e0364b59d93",
+		underlyingTicker: "TSLA",
+		platform: "Ondo",
+		category: "EV",
+		decimals: 18,
+		referencePriceSource: "NASDAQ",
+		underlyingCompanyName: "Tesla, Inc.",
 	},
 	{
 		symbol: "TSLAB",
-		name: "Tesla Inc. Tokenized Stock (bStock)",
-		address: "0x2B9B32D813589b91730B2fE17a2F2EcD7cb66847",
+		name: "Tesla Tokenized Stock (Binance bStock)",
+		address: "0x5b1910eaad6450e50f816082aa078c41f10c292f",
 		underlyingTicker: "TSLA",
 		platform: "BStock",
 		category: "EV",
@@ -47,20 +59,9 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 		underlyingCompanyName: "Tesla, Inc.",
 	},
 	{
-		symbol: "xTSLA",
-		name: "Tesla Inc. Tokenized Pool (xStock)",
-		address: "0x34Bc67d1C2b8478A51C7E05C61c3B7281D925e07",
-		underlyingTicker: "TSLA",
-		platform: "xStock",
-		category: "EV",
-		decimals: 18,
-		referencePriceSource: "NASDAQ",
-		underlyingCompanyName: "Tesla, Inc.",
-	},
-	{
-		symbol: "AAPLon",
-		name: "Apple Inc. Tokenized Stock (Ondo/BSC)",
-		address: "0x4384F9B731e9c20a40B480026e6A387063d91973",
+		symbol: "AAPLON",
+		name: "Apple Tokenized Stock (Ondo/BSC)",
+		address: "0x390a684ef9cade28a7ad0dfa61ab1eb3842618c4",
 		underlyingTicker: "AAPL",
 		platform: "Ondo",
 		category: "Tech",
@@ -69,9 +70,9 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 		underlyingCompanyName: "Apple Inc.",
 	},
 	{
-		symbol: "bAAPL",
-		name: "Apple Inc. Tokenized Stock (bStock)",
-		address: "0x496cB2D0B6579E9b2FeB1893c5D60eC3A12896D2",
+		symbol: "AAPLB",
+		name: "Apple Tokenized Stock (Binance bStock)",
+		address: "0x431a3bee82e2ca41e49895cbece5bb0f76a89b7a",
 		underlyingTicker: "AAPL",
 		platform: "BStock",
 		category: "Tech",
@@ -80,31 +81,31 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 		underlyingCompanyName: "Apple Inc.",
 	},
 	{
-		symbol: "SPYon",
-		name: "SPDR S&P 500 ETF Trust Tokenized (Ondo)",
-		address: "0x89D2c776Eb2638843336495b5974015697669485",
+		symbol: "SPYON",
+		name: "SPDR S&P 500 ETF Tokenized (Ondo)",
+		address: "0x6a708ead771238919d85930b5a0f10454e1c331a",
 		underlyingTicker: "SPY",
 		platform: "Ondo",
 		category: "Index ETF",
 		decimals: 18,
 		referencePriceSource: "NYSE",
-		underlyingCompanyName: "State Street SPDR S&P 500 ETF",
+		underlyingCompanyName: "SPDR S&P 500 ETF",
 	},
 	{
-		symbol: "bSPY",
-		name: "SPDR S&P 500 ETF Trust (bStock)",
-		address: "0x8faB91D234C5892D1794b150935D62c15905D2a8",
+		symbol: "SPYB",
+		name: "SPDR S&P 500 ETF Tokenized (Binance bStock)",
+		address: "0x7138b48df7d98d7e3cc221bfe7192d0a178182d8",
 		underlyingTicker: "SPY",
 		platform: "BStock",
 		category: "Index ETF",
 		decimals: 18,
 		referencePriceSource: "NYSE",
-		underlyingCompanyName: "State Street SPDR S&P 500 ETF",
+		underlyingCompanyName: "SPDR S&P 500 ETF",
 	},
 	{
-		symbol: "COINon",
-		name: "Coinbase Global Tokenized Stock",
-		address: "0x91F568C3826049C247B256a4220364C3d142E655",
+		symbol: "COINON",
+		name: "Coinbase Global Tokenized Stock (Ondo/BSC)",
+		address: "0xf8589b526fdd65f7f301c605a6e04f0f1b4b3620",
 		underlyingTicker: "COIN",
 		platform: "Ondo",
 		category: "Finance",
@@ -113,9 +114,20 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 		underlyingCompanyName: "Coinbase Global, Inc.",
 	},
 	{
-		symbol: "MSFTon",
-		name: "Microsoft Corp. Tokenized Stock",
-		address: "0x7892543e37172081121d58B041C8987b7E552861",
+		symbol: "COINB",
+		name: "Coinbase Global Tokenized Stock (Binance bStock)",
+		address: "0x585bde7c54abb5ccd7791f923d6c2187635f3952",
+		underlyingTicker: "COIN",
+		platform: "BStock",
+		category: "Finance",
+		decimals: 18,
+		referencePriceSource: "NASDAQ",
+		underlyingCompanyName: "Coinbase Global, Inc.",
+	},
+	{
+		symbol: "MSFTON",
+		name: "Microsoft Tokenized Stock (Ondo/BSC)",
+		address: "0x6bfe75d1ad432050ea973c3a3dcd88f02e2444c3",
 		underlyingTicker: "MSFT",
 		platform: "Ondo",
 		category: "Tech",
@@ -123,13 +135,30 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 		referencePriceSource: "NASDAQ",
 		underlyingCompanyName: "Microsoft Corporation",
 	},
+	{
+		symbol: "MSFTB",
+		name: "Microsoft Tokenized Stock (Binance bStock)",
+		address: "0x80106cb3ead06659a5ad19df39d9b4733863b9b0",
+		underlyingTicker: "MSFT",
+		platform: "BStock",
+		category: "Tech",
+		decimals: 18,
+		referencePriceSource: "NASDAQ",
+		underlyingCompanyName: "Microsoft Corporation",
+	},
 ];
 
-// Alias to live-market-feed's fallback so there's a single source of truth.
-// At runtime, getStockPrices() fetches live Yahoo Finance data and falls back to these.
 export { FALLBACK_TRADFI_BENCHMARKS as TRADFI_BENCHMARKS } from "./live-market-feed.ts";
 
-// Keep a local const for getSwapQuote (sync usage)
+const BSC_MARKET_TICKERS: Record<string, string> = {
+	NVDAB: "NVDABUSDT",
+	TSLAB: "TSLABUSDT",
+	AAPLB: "AAPLBUSDT",
+	SPYB: "SPYBUSDT",
+	COINB: "COINBUSDT",
+	MSFTB: "MSFTBUSDT",
+};
+
 const _STATIC_BENCHMARKS: Record<string, { refPrice: number; prevClose: number }> = {
 	NVDA: { refPrice: 222.27, prevClose: 219.34 },
 	TSLA: { refPrice: 364.27, prevClose: 366.20 },
@@ -141,35 +170,42 @@ const _STATIC_BENCHMARKS: Record<string, { refPrice: number; prevClose: number }
 
 export class BinanceRwaClient {
 	private apiKey?: string;
+	private secretKey?: string;
 	private baseUrl: string;
 
-	constructor(apiKey?: string, baseUrl = "https://web3.binance.com") {
+	constructor(apiKey?: string, secretKey?: string, baseUrl = "https://api.binance.com") {
 		this.apiKey = apiKey || (typeof process !== "undefined" ? process.env?.BINANCE_WEB3_API_KEY : undefined);
+		this.secretKey = secretKey || (typeof process !== "undefined" ? process.env?.BINANCE_WEB3_SECRET_KEY : undefined);
 		this.baseUrl = baseUrl;
 	}
 
-	/**
-	 * Computes US Stock Market status based on Eastern Time (ET).
-	 * US Regular Hours: Mon-Fri 09:30 - 16:00 ET (13:30 - 20:00 UTC).
-	 * Weekend: Friday 20:00 UTC through Sunday 24:00 UTC.
-	 */
+	private getAuthHeaders(method: string, path: string, body: string = ""): Record<string, string> {
+		if (!this.apiKey || !this.secretKey) return {};
+		const timestamp = new Date().toISOString();
+		const message = `${timestamp}${method.toUpperCase()}${path}${body}`;
+		const signature = crypto.createHmac("sha256", this.secretKey).update(message).digest("base64");
+		
+		return {
+			"Content-Type": "application/json",
+			"X-OC-APIKEY": this.apiKey,
+			"X-OC-TIMESTAMP": timestamp,
+			"X-OC-SIGN": signature,
+		};
+	}
+
 	public getMarketStatus(date: Date = new Date()): { status: StockMarketStatus; nextOpen: string } {
-		const utcDay = date.getUTCDay(); // 0 = Sun, 6 = Sat
+		const utcDay = date.getUTCDay();
 		const utcHours = date.getUTCHours();
 		const utcMinutes = date.getUTCMinutes();
 		const currentMinute = utcHours * 60 + utcMinutes;
 
-		// Weekend check
 		if (utcDay === 6 || utcDay === 0 || (utcDay === 5 && currentMinute >= 1260) || (utcDay === 1 && currentMinute < 810)) {
 			const daysUntilMonday = (8 - utcDay) % 7 || 7;
 			const nextMonday = new Date(date);
 			nextMonday.setUTCDate(date.getUTCDate() + (utcDay === 1 ? 0 : daysUntilMonday));
 			nextMonday.setUTCHours(13, 30, 0, 0);
 
-			return {
-				status: "WEEKEND_24_7",
-				nextOpen: nextMonday.toISOString(),
-			};
+			return { status: "WEEKEND_24_7", nextOpen: nextMonday.toISOString() };
 		}
 
 		if (currentMinute >= 810 && currentMinute <= 1200) {
@@ -179,63 +215,74 @@ export class BinanceRwaClient {
 		return { status: "AFTER_HOURS", nextOpen: "Pre-Market opens at 13:30 UTC" };
 	}
 
-	/**
-	 * Retrieves real stock price data and computes the Weekend / After-Hours spread.
-	 * TradFi reference prices are fetched live from Yahoo Finance (via proxy or direct)
-	 * with automatic fallback to calibrated benchmarks.
-	 */
 	public async getStockPrices(): Promise<StockPriceData[]> {
 		const marketInfo = this.getMarketStatus();
 		const now = Date.now();
 
-		// Fetch live TradFi prices (Yahoo Finance) and live BNB price in parallel
 		const [liveBenchmarks, liveBnbPrice] = await Promise.all([
 			fetchLiveTradFiBenchmarks(),
 			fetchLiveBnbPrice(),
 		]);
 
-		let apiPrices: Record<string, number> = {};
-		if (this.apiKey) {
-			try {
-				const res = await fetch(`${this.baseUrl}/api/v1/dex/market/rwa/price`, {
-					headers: {
-						"X-API-KEY": this.apiKey,
-						"Accept": "application/json",
-					},
-					signal: AbortSignal.timeout(3000),
-				});
-				if (res.ok) {
-					const json = await res.json();
-					if (json.data && Array.isArray(json.data)) {
-						for (const item of json.data) {
-							if (item.symbol && item.price) {
-								apiPrices[item.symbol.toUpperCase()] = parseFloat(item.price);
-							}
+		// [INTEGRAZIONE HACKATHON]: Fetch autenticato Reference Price da Binance Web3 API
+		const authenticatedRwaPrices: Record<string, number> = {};
+		if (this.apiKey && this.secretKey) {
+			await Promise.allSettled(
+				VERIFIED_BSC_STOCKS.map(async (stock) => {
+					// Assumiamo path standard RWA data, da calibrare se i doc dell'hackathon ne indicano uno specifico
+					const path = `/api/v1/market/rwa/price?symbol=${stock.symbol}`;
+					try {
+						const res = await fetch(`${this.baseUrl}${path}`, {
+							method: "GET",
+							headers: this.getAuthHeaders("GET", path)
+						});
+						if (res.ok) {
+							const json = await res.json();
+							if (json.price) authenticatedRwaPrices[stock.symbol] = Number(json.price);
 						}
+					} catch (e) {
+						// Silenzia l'errore di rete per permettere il fallback
 					}
-				}
-			} catch {
-				// Fallback seamlessly to on-chain model
-			}
+				})
+			);
+		} else {
+			console.warn("[Binance Web3] API Key o Secret assenti. Verrà utilizzato il TradFi fallback.");
 		}
 
-		// Use live BNB price for gas computation in friction model
-		void liveBnbPrice; // available for downstream use
+		// Fallback storico per ticker di mercato
+		const apiPrices: Record<string, number> = {};
+		const tickerChecks = await Promise.allSettled(
+			Object.entries(BSC_MARKET_TICKERS).map(async ([symbol, ticker]) => {
+				try {
+					const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${ticker}`, {
+						signal: AbortSignal.timeout(3000),
+					});
+					if (!res.ok) return;
+					const json = (await res.json()) as { price?: string };
+					const price = Number(json.price);
+					if (Number.isFinite(price) && price > 0) {
+						apiPrices[symbol] = price;
+					}
+				} catch { }
+			}),
+		);
+		
+		void tickerChecks;
+		void liveBnbPrice;
 
 		return VERIFIED_BSC_STOCKS.map((stock) => {
 			const liveBenchmark = liveBenchmarks[stock.underlyingTicker];
-			const benchmark = liveBenchmark
+			const fallbackRef = liveBenchmark
 				? { refPrice: liveBenchmark.refPrice, prevClose: liveBenchmark.prevClose }
 				: (FALLBACK_TRADFI_BENCHMARKS[stock.underlyingTicker] || { refPrice: 100, prevClose: 100 });
-			const tradFiPrice = benchmark.refPrice;
+			
+			// Il reference price è ora prioritizzato sulla Web3 API ufficiale
+			const tradFiPrice = authenticatedRwaPrices[stock.symbol] ?? fallbackRef.refPrice;
 
-			let onChainPrice = apiPrices[stock.symbol.toUpperCase()];
-			if (!onChainPrice) {
-				// Deterministic micro-spread based on underlying address hash to model real BSC pool liquidity
-				const seed = stock.address.charCodeAt(2) + stock.address.charCodeAt(3) + (stock.platform === "BStock" ? 7 : 0);
-				const naturalDriftPct = ((seed % 31) - 15) / 10; // -1.5% to +1.5%
-				onChainPrice = parseFloat((tradFiPrice * (1 + naturalDriftPct / 100)).toFixed(2));
-			}
+			const realTickerPrice = apiPrices[stock.symbol];
+			
+			// [TODO STEP 3]: Questo fallback fittizio verrà sostituito dal feed live di Birdeye
+			const onChainPrice = realTickerPrice ?? tradFiPrice;
 
 			const spreadUsd = parseFloat((onChainPrice - tradFiPrice).toFixed(2));
 			const spreadPct = parseFloat(((spreadUsd / tradFiPrice) * 100).toFixed(2));
@@ -256,9 +303,6 @@ export class BinanceRwaClient {
 		});
 	}
 
-	/**
-	 * Builds a Quote for swapping between crypto/USDT and a Tokenized Stock.
-	 */
 	public async getSwapQuote(req: RwaSwapQuoteRequest): Promise<RwaSwapQuoteResponse> {
 		const parsedAmountIn = parseFloat(req.amountIn);
 		if (isNaN(parsedAmountIn) || parsedAmountIn <= 0) {

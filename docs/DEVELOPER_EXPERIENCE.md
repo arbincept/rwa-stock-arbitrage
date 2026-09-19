@@ -6,6 +6,8 @@
 **Date:** September 2026  
 **Repository:** [github.com/arbincept/rwa-stock-arbitrage](https://github.com/arbincept/rwa-stock-arbitrage)
 
+> **Evidence status:** This is a draft for the submission. The repository currently verifies Binance's public RWA catalog, selected public Binance tickers, Yahoo benchmark retrieval, and BSC gas RPC retrieval. The latency table, Pyth/RFQ integration statements, and protocol-routing descriptions below are not yet backed by committed capture logs or live quote code and must not be presented as completed implementation evidence.
+
 ---
 
 ## Executive Summary

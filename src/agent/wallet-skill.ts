@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { BinanceRwaClient } from "../client/binance-rwa-client.ts";
 import { scanMarketHoursOpportunities } from "../engine/market-hours-arb.ts";
 import { scanCrossProtocolOpportunities } from "../engine/cross-protocol-arb.ts";

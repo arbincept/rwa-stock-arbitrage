@@ -1,8 +1,11 @@
 import type { MarketHoursArbitrageOpportunity, StockPriceData, TokenizedStock } from "../types/rwa.ts";
-import { calculateExecutionFriction, type FrictionModelOptions } from "./friction-model.ts";
+import { calculateNetArbitrageProfit } from "./friction-model.ts";
 
-export interface MarketHoursArbOptions extends FrictionModelOptions {
+export interface MarketHoursArbOptions {
 	minNetProfitPct?: number; // default 0.35%
+	tradeSizeUsd?: number;
+	gasUsd?: number;
+	slippagePct?: number;
 }
 
 export function evaluateMarketHoursOpportunity(
@@ -13,6 +16,8 @@ export function evaluateMarketHoursOpportunity(
 ): MarketHoursArbitrageOpportunity {
 	const minNetProfitPct = options.minNetProfitPct ?? 0.35;
 	const tradeSizeUsd = options.tradeSizeUsd ?? 1000;
+	const gasUsd = options.gasUsd ?? 0.12;
+	const slippagePct = options.slippagePct ?? 0.5;
 
 	if (refPrice <= 0) {
 		throw new Error("Reference price must be positive");
@@ -22,12 +27,9 @@ export function evaluateMarketHoursOpportunity(
 	const grossSpreadPct = parseFloat(((spreadUsd / refPrice) * 100).toFixed(4));
 	const absSpreadPct = Math.abs(grossSpreadPct);
 
-	const friction = calculateExecutionFriction({
-		...options,
-		tradeSizeUsd,
-	});
-
-	const netProfitPct = parseFloat((absSpreadPct - friction.totalFrictionPct).toFixed(4));
+	const calc = calculateNetArbitrageProfit(tradeSizeUsd, absSpreadPct, gasUsd, slippagePct);
+	
+	const netProfitPct = calc.netRoiPct;
 	const isActionable = netProfitPct >= minNetProfitPct;
 
 	let direction: "BUY_ONCHAIN_DISCOUNT" | "SELL_ONCHAIN_PREMIUM";
@@ -48,7 +50,7 @@ export function evaluateMarketHoursOpportunity(
 		tradFiRefPriceUsd: refPrice,
 		grossSpreadPct,
 		netProfitPct: Math.max(0, netProfitPct),
-		estimatedGasCostUsd: friction.gasCostUsd,
+		estimatedGasCostUsd: gasUsd,
 		recommendedTradeUsd: tradeSizeUsd,
 		isActionable,
 		rationale,

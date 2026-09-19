@@ -1,8 +1,11 @@
 import type { CrossProtocolArbitrageOpportunity, StockPriceData } from "../types/rwa.ts";
-import { calculateExecutionFriction, type FrictionModelOptions } from "./friction-model.ts";
+import { calculateNetArbitrageProfit } from "./friction-model.ts";
 
-export interface CrossProtocolArbOptions extends FrictionModelOptions {
+export interface CrossProtocolArbOptions {
 	minNetProfitPct?: number; // default 0.40%
+	tradeSizeUsd?: number;
+	gasUsd?: number;
+	slippagePct?: number;
 }
 
 /**
@@ -16,6 +19,8 @@ export function scanCrossProtocolOpportunities(
 ): CrossProtocolArbitrageOpportunity[] {
 	const minNetProfitPct = options.minNetProfitPct ?? 0.40;
 	const tradeSizeUsd = options.tradeSizeUsd ?? 1000;
+	const gasUsd = options.gasUsd ?? 0.12;
+	const slippagePct = options.slippagePct ?? 0.5;
 
 	// Group stocks by underlying ticker
 	const grouped = new Map<string, StockPriceData[]>();
@@ -46,12 +51,8 @@ export function scanCrossProtocolOpportunities(
 				const grossSpreadPct = parseFloat(((spreadUsd / cheaper.onChainPriceUsd) * 100).toFixed(4));
 
 				// Two-leg execution friction (buying on cheaper venue, selling on expensive venue)
-				const legFriction = calculateExecutionFriction({
-					...options,
-					tradeSizeUsd,
-				});
-				const totalFrictionPct = legFriction.totalFrictionPct * 1.6; // account for two-leg swap execution
-				const netProfitPct = parseFloat((grossSpreadPct - totalFrictionPct).toFixed(4));
+				const calc = calculateNetArbitrageProfit(tradeSizeUsd, grossSpreadPct, gasUsd * 2, slippagePct * 2);
+				const netProfitPct = calc.netRoiPct;
 				const isActionable = netProfitPct >= minNetProfitPct;
 
 				const strategy = `Buy ${cheaper.stock.symbol} on ${cheaper.stock.platform} at $${cheaper.onChainPriceUsd.toFixed(2)} and sell ${expensive.stock.symbol} on ${expensive.stock.platform} at $${expensive.onChainPriceUsd.toFixed(2)}. Gross gap: ${grossSpreadPct.toFixed(2)}% | Net edge: +${Math.max(0, netProfitPct).toFixed(2)}%.`;
@@ -67,7 +68,7 @@ export function scanCrossProtocolOpportunities(
 					cheaperVenue: cheaper.stock.platform,
 					expensiveVenue: expensive.stock.platform,
 					netProfitPct: Math.max(0, netProfitPct),
-					estimatedGasCostUsd: legFriction.gasCostUsd * 2,
+					estimatedGasCostUsd: gasUsd * 2,
 					isActionable,
 					strategy,
 				});

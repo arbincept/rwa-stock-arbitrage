@@ -4,6 +4,8 @@
 **Repository:** `arbincept/rwa-stock-arbitrage`  
 **License:** MIT  
 
+> **Implementation status:** This document describes the target architecture. The current repository has a read-only market scanner and mathematical dry-run quote simulator; it does not yet implement live PancakeSwap RFQ/AMM quoting, Pyth ingestion, executable swaps, or RPC transaction simulation.
+
 ---
 
 ## 1. System Topology

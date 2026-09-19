@@ -4,13 +4,14 @@ import { evaluateMarketHoursOpportunity, scanMarketHoursOpportunities } from "..
 import type { TokenizedStock, StockPriceData } from "../src/types/rwa.ts";
 
 const mockStock: TokenizedStock = {
-	address: "0x1111111111111111111111111111111111111111",
-	symbol: "NVDAon",
+	address: "0xa9ee28c80f960b889dfbd1902055218cba016f75",
+	symbol: "NVDAON",
 	name: "Nvidia Corp (Ondo)",
 	underlyingTicker: "NVDA",
-	platform: "Ondo Finance",
+	platform: "Ondo",
 	decimals: 18,
-	referencePriceSource: "NASDAQ:NVDA (Close)",
+	referencePriceSource: "NASDAQ",
+	underlyingCompanyName: "NVIDIA Corporation",
 };
 
 test("evaluateMarketHoursOpportunity - detects on-chain premium over TradFi close", () => {
@@ -65,32 +66,38 @@ test("evaluateMarketHoursOpportunity - throws on invalid reference price", () =>
 test("scanMarketHoursOpportunities - sorts opportunities by net profit descending", () => {
 	const stockList: StockPriceData[] = [
 		{
-			stock: { ...mockStock, symbol: "AAPLon", underlyingTicker: "AAPL" },
+			stock: { ...mockStock, symbol: "AAPLON", underlyingTicker: "AAPL", address: "0x390a684ef9cade28a7ad0dfa61ab1eb3842618c4" },
 			onChainPriceUsd: 228.00,
-			tradFiRefPriceUsd: 227.50, // spread ~ +0.22% (tight)
+			tradFiRefPriceUsd: 227.50,
+			volume24hUsd: 100000,
+			liquidityDepthUsd: 500000,
 			marketStatus: "WEEKEND_24_7",
-			timestamp: Date.now(),
+			lastUpdated: Date.now(),
 		},
 		{
-			stock: { ...mockStock, symbol: "NVDAon", underlyingTicker: "NVDA" },
+			stock: { ...mockStock, symbol: "NVDAON", underlyingTicker: "NVDA", address: "0xa9ee28c80f960b889dfbd1902055218cba016f75" },
 			onChainPriceUsd: 125.00,
-			tradFiRefPriceUsd: 120.00, // spread ~ +4.16% (high)
+			tradFiRefPriceUsd: 120.00,
+			volume24hUsd: 100000,
+			liquidityDepthUsd: 500000,
 			marketStatus: "WEEKEND_24_7",
-			timestamp: Date.now(),
+			lastUpdated: Date.now(),
 		},
 		{
-			stock: { ...mockStock, symbol: "SPYon", underlyingTicker: "SPY" },
+			stock: { ...mockStock, symbol: "SPYON", underlyingTicker: "SPY", address: "0x6a708ead771238919d85930b5a0f10454e1c331a" },
 			onChainPriceUsd: 550.00,
-			tradFiRefPriceUsd: 560.00, // spread ~ -1.78% (medium)
+			tradFiRefPriceUsd: 560.00,
+			volume24hUsd: 100000,
+			liquidityDepthUsd: 500000,
 			marketStatus: "WEEKEND_24_7",
-			timestamp: Date.now(),
+			lastUpdated: Date.now(),
 		},
 	];
 
 	const results = scanMarketHoursOpportunities(stockList, { tradeSizeUsd: 1000 });
 	assert.equal(results.length, 3);
 	// 1st should be NVDA (highest net profit)
-	assert.equal(results[0].stock.symbol, "NVDAon");
+	assert.equal(results[0].stock.symbol, "NVDAON");
 	assert.ok(results[0].netProfitPct > results[1].netProfitPct);
 	assert.ok(results[1].netProfitPct >= results[2].netProfitPct);
 });
