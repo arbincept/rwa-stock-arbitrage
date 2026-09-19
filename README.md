@@ -3,7 +3,7 @@
 [![BNB Chain](https://img.shields.io/badge/BNB%20Chain-Mainnet-F0B90B?style=for-the-badge&logo=binance&logoColor=black)](https://bscscan.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Tests](https://img.shields.io/badge/Tests-17%20Passed%20(100%25)-success?style=for-the-badge)](https://github.com/arbincept/rwa-stock-arbitrage)
+[![Tests](https://img.shields.io/badge/Tests-unit%20%2B%20live%20integration-5271B4?style=for-the-badge)](https://github.com/arbincept/rwa-stock-arbitrage)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 > **Work-in-progress submission candidate for BNB Hack: Tokenized Stocks Edition**
@@ -21,7 +21,7 @@ This project was built from the ground up to fulfill the official wishlist requi
 | **Wishlist Idea #2: Cross-Protocol Arbitrage** | ✅ **Implemented** | Exploits structural pricing spreads between competing wrappers for identical underlyings (e.g. Ondo Finance `NVDAon` vs bStocks `bNVDA` on BSC) (`src/engine/cross-protocol-arb.ts`). |
 | **Special Prize: Binance Agentic Wallet** | ⚠️ **Candidate integration** | Local skill and stdio MCP adapter exist (`src/agent/wallet-skill.ts`, `src/agent/mcp-server.ts`); official bounty compatibility and hosted-agent evaluation are still pending. |
 | **Developer Experience Report** | ⚠️ **Draft / needs evidence** | `docs/DEVELOPER_EXPERIENCE.md` exists, but its latency figures and protocol claims need reproducible logs and source references before they can support a submission. |
-| **Production readiness** | ⚠️ **Partial** | Verified BSC catalog entries and public Binance tickers are used where available. Swap quotes are dry-run calculations, not executable or RPC-simulated swaps. |
+| **Production readiness** | ⚠️ **Partial** | Verified Binance Web3 RWA Dynamic V2 data, live Kyber route/build and wallet signing are wired. RPC `eth_call` preflight and deeper execution hardening remain follow-ups. |
 
 ---
 
@@ -75,7 +75,7 @@ Our suite monitors verified tokenized stock contracts deployed on **BNB Smart Ch
 
 | Underlying | Protocol | BSC Token Symbol | Contract Address | Venue / Routing |
 | :--- | :--- | :--- | :--- | :--- |
-The source of truth for the current BSC catalog is `VERIFIED_BSC_STOCKS` in `src/client/binance-rwa-client.ts`, checked against Binance's public RWA catalog. Do not copy contract addresses from this README: the catalog is intentionally maintained in code and must be revalidated before each release.
+The source of truth for the current BSC catalog is `VERIFIED_BSC_STOCKS` in `src/client/binance-rwa-client.ts`, checked against Binance's public RWA catalog. Live token and underlying-stock prices come from Binance Web3 RWA Dynamic V2 (`web3.binance.com`). These RWA data endpoints are public and do not require an API key; private keys must never be exposed in the browser bundle.
 
 ---
 
@@ -112,38 +112,25 @@ cd rwa-stock-arbitrage
 npm install
 ```
 
-### 2. Run Automated Test Suite (17 Tests, 0 Mocks)
+### 2. Run Deterministic Test Suite
 ```bash
 npm test
 ```
-```text
-✔ scanCrossProtocolOpportunities - detects and calculates Ondo vs bStocks arbitrage
-✔ scanCrossProtocolOpportunities - ignores assets with single platform wrapper
-✔ scanCrossProtocolOpportunities - sorts by net edge descending
-✔ calculateExecutionFriction - baseline BSC gas calculation
-✔ calculateExecutionFriction - sensitivity to trade size
-✔ calculateExecutionFriction - zero/default fallbacks
-✔ evaluateMarketHoursOpportunity - detects on-chain premium over TradFi close
-✔ evaluateMarketHoursOpportunity - detects on-chain discount under TradFi close
-✔ evaluateMarketHoursOpportunity - spread below friction threshold is marked non-actionable
-✔ evaluateMarketHoursOpportunity - throws on invalid reference price
-✔ scanMarketHoursOpportunities - sorts opportunities by net profit descending
-✔ simulateRwaSwap - simulates swap execution with accurate gas math
-✔ simulateRwaSwap - verifies slippage protection check
-✔ RwaStockArbitrageSkill - exposes standard tool definitions
-✔ RwaStockArbitrageSkill - executes scanMarketHoursGaps
-✔ RwaStockArbitrageSkill - executes scanCrossProtocolGaps
-✔ RwaStockArbitrageSkill - executes simulateStockSwap for valid and invalid tokens
-ℹ tests 17 | pass 17 | fail 0
-```
+This suite covers the current pure engines and tool definitions without requiring network access.
 
-### 3. Launch the Interactive Web Dashboard
+### 3. Run Live Kyber and Skill Integration Checks
+```bash
+npm run test:live
+```
+Live checks query Kyber route/build and the public market feeds. They require network access and may be skipped when an upstream route is unavailable.
+
+### 4. Launch the Interactive Web Dashboard
 ```bash
 npm run dev
 ```
 Visit `http://localhost:5173` to explore the dashboard with live public ticker data where available, benchmark data, and a dry-run swap widget. The UI must not be interpreted as proof that every wrapper has a live executable route.
 
-### 4. Build for Production
+### 5. Build for Production
 ```bash
 npm run build
 ```
@@ -177,10 +164,10 @@ To connect this engine to **Cursor**, **Claude Code**, or the **BNB Agent Studio
 }
 ```
 
-The server exposes 3 standard tools:
+The server exposes 3 local tools:
 1. `scan_market_hours_gaps`: Discovers weekend / after-hours pricing disparities against TradFi close.
 2. `scan_cross_protocol_gaps`: Discovers spreads between Ondo Finance and bStocks wrappers on BSC.
-3. `simulate_stock_swap`: Performs zero-risk dry-run transaction simulation with slippage bounds check.
+3. `simulate_stock_swap`: Queries Kyber route/build, produces slippage-protected calldata, and does not sign or submit it.
 
 ---
 
@@ -193,8 +180,8 @@ The developer-experience report exists as a draft. Its API, RPC, and agent-integ
 ## 🔒 Security & Risk Management
 
 - **Spot Only (No Perps):** In strict accordance with the hackathon rules, all mechanisms focus exclusively on spot tokenized assets.
-- **Slippage Enforced:** Swap quotes strictly enforce `minAmountOut = expectedAmountOut * (1 - slippage / 100)`.
-- **Zero Real Funds at Risk during Simulation:** The `simulator.ts` module calculates a dry-run result without requiring private key signatures. It does not call a DEX router, perform an `eth_call`, or submit a transaction.
+- **Slippage Enforced:** Kyber-built calldata uses a 0.5% slippage tolerance and returns a minimum output estimate.
+- **Zero Real Funds at Risk during Simulation:** The simulator queries Kyber and builds calldata without requiring private key signatures. Before explicit wallet signing, the UI runs `eth_estimateGas` and `eth_call` against the current wallet state.
 
 ---
 

@@ -9,6 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test:live": "RUN_LIVE_TESTS=1 node --test --experimental-strip-types tests/*.test.ts",
     "agent:scan": "node --experimental-strip-types src/agent/wallet-skill.ts",
     "agent:mcp": "node --experimental-strip-types src/agent/mcp-server.ts"
   },

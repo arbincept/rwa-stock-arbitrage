@@ -10,15 +10,7 @@ interface SwapWidgetProps {
 }
 
 const BSC_CHAIN_ID = '0x38'; // 56
-
-const TOKEN_ADDRESSES: Record<string, { in: string; out: string }> = {
-  NVDA: { in: '0x55d398326f99059fF775485246999027B3197955', out: '0x101f37e42d70cb26a6ef44b3602492de49a46f25' },
-  TSLA: { in: '0x55d398326f99059fF775485246999027B3197955', out: '0x202f37e42d70cb26a6ef44b3602492de49a46f26' },
-  AAPL: { in: '0x55d398326f99059fF775485246999027B3197955', out: '0x303f37e42d70cb26a6ef44b3602492de49a46f27' },
-  SPY:  { in: '0x55d398326f99059fF775485246999027B3197955', out: '0x404f37e42d70cb26a6ef44b3602492de49a46f28' },
-  COIN: { in: '0x55d398326f99059fF775485246999027B3197955', out: '0x505f37e42d70cb26a6ef44b3602492de49a46f29' },
-  MSFT: { in: '0x55d398326f99059fF775485246999027B3197955', out: '0x606f37e42d70cb26a6ef44b3602492de49a46f29' },
-};
+const USDT_BSC = '0x55d398326f99059fF775485246999027B3197955' as const;
 
 export const SwapWidget: React.FC<SwapWidgetProps> = ({
   stocks,
@@ -30,6 +22,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [executing, setExecuting] = useState<boolean>(false);
   const [simulation, setSimulation] = useState<any | null>(null);
+  const [preflighted, setPreflighted] = useState<boolean>(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,16 +87,21 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     }
   };
 
-  const currentPair = TOKEN_ADDRESSES[selectedSymbol] || TOKEN_ADDRESSES['NVDA'];
+  const selectedStock = stocks.find((stock) => stock.stock.symbol === selectedSymbol) ?? stocks[0];
 
   const handleSimulate = async () => {
     setLoading(true);
     setError(null);
     setTxHash(null);
+    setPreflighted(false);
     try {
+      if (!selectedStock) {
+        throw new Error('Nessun asset RWA verificato disponibile.');
+      }
+
       const quote = {
-        fromToken: currentPair.in as `0x${string}`,
-        toToken: currentPair.out as `0x${string}`,
+        fromToken: USDT_BSC,
+        toToken: selectedStock.stock.address,
         amountIn: amountIn,
       } as unknown as RwaSwapQuoteResponse;
 
@@ -132,16 +130,33 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     setExecuting(true);
     setError(null);
     setTxHash(null);
+    setPreflighted(false);
 
     try {
       const txRequest = simulation.transactionRequest;
+      const call = {
+        from: account,
+        to: txRequest.to,
+        data: txRequest.data,
+        value: txRequest.value || '0x0',
+      };
+
+      const gasEstimate = await provider.request({
+        method: 'eth_estimateGas',
+        params: [call],
+      });
+
+      await provider.request({
+        method: 'eth_call',
+        params: [call, 'latest'],
+      });
+      setPreflighted(true);
+
       const hash = await provider.request({
         method: 'eth_sendTransaction',
         params: [{
-          from: account,
-          to: txRequest.to,
-          data: txRequest.data,
-          value: txRequest.value || '0x0',
+          ...call,
+          gas: gasEstimate,
         }],
       });
       setTxHash(hash);
@@ -231,7 +246,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         <div className="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono space-y-1">
           <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
             <CheckCircle2 className="w-4 h-4" />
-            {simulation.success ? 'Calldata Generato (5 bps Fee)' : 'Errore Simulazione'}
+            {simulation.success ? (preflighted ? 'Preflight RPC Superato' : 'Calldata Kyber Generato') : 'Errore Simulazione'}
           </div>
           <div className="text-slate-300">Min Out: {simulation.minAmountOutGuaranteed}</div>
           <div className="text-slate-300">Est. Gas: {simulation.gasUsed?.toString()} units</div>

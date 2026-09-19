@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import type {
 	RwaSwapQuoteRequest,
 	RwaSwapQuoteResponse,
@@ -169,28 +168,10 @@ const _STATIC_BENCHMARKS: Record<string, { refPrice: number; prevClose: number }
 };
 
 export class BinanceRwaClient {
-	private apiKey?: string;
-	private secretKey?: string;
 	private baseUrl: string;
 
-	constructor(apiKey?: string, secretKey?: string, baseUrl = "https://api.binance.com") {
-		this.apiKey = apiKey || (typeof process !== "undefined" ? process.env?.BINANCE_WEB3_API_KEY : undefined);
-		this.secretKey = secretKey || (typeof process !== "undefined" ? process.env?.BINANCE_WEB3_SECRET_KEY : undefined);
+	constructor(_apiKey?: string, _secretKey?: string, baseUrl = "https://web3.binance.com") {
 		this.baseUrl = baseUrl;
-	}
-
-	private getAuthHeaders(method: string, path: string, body: string = ""): Record<string, string> {
-		if (!this.apiKey || !this.secretKey) return {};
-		const timestamp = new Date().toISOString();
-		const message = `${timestamp}${method.toUpperCase()}${path}${body}`;
-		const signature = crypto.createHmac("sha256", this.secretKey).update(message).digest("base64");
-		
-		return {
-			"Content-Type": "application/json",
-			"X-OC-APIKEY": this.apiKey,
-			"X-OC-TIMESTAMP": timestamp,
-			"X-OC-SIGN": signature,
-		};
 	}
 
 	public getMarketStatus(date: Date = new Date()): { status: StockMarketStatus; nextOpen: string } {
@@ -224,30 +205,31 @@ export class BinanceRwaClient {
 			fetchLiveBnbPrice(),
 		]);
 
-		// [INTEGRAZIONE HACKATHON]: Fetch autenticato Reference Price da Binance Web3 API
-		const authenticatedRwaPrices: Record<string, number> = {};
-		if (this.apiKey && this.secretKey) {
-			await Promise.allSettled(
-				VERIFIED_BSC_STOCKS.map(async (stock) => {
-					// Assumiamo path standard RWA data, da calibrare se i doc dell'hackathon ne indicano uno specifico
-					const path = `/api/v1/market/rwa/price?symbol=${stock.symbol}`;
-					try {
-						const res = await fetch(`${this.baseUrl}${path}`, {
-							method: "GET",
-							headers: this.getAuthHeaders("GET", path)
-						});
-						if (res.ok) {
-							const json = await res.json();
-							if (json.price) authenticatedRwaPrices[stock.symbol] = Number(json.price);
-						}
-					} catch (e) {
-						// Silenzia l'errore di rete per permettere il fallback
-					}
-				})
-			);
-		} else {
-			console.warn("[Binance Web3] API Key o Secret assenti. Verrà utilizzato il TradFi fallback.");
-		}
+		const officialRwaData: Record<string, { tokenPrice?: number; stockPrice?: number }> = {};
+		await Promise.allSettled(
+			VERIFIED_BSC_STOCKS.map(async (stock) => {
+				const path = `/bapi/defi/v2/public/wallet-direct/buw/wallet/market/token/rwa/dynamic/ai?chainId=56&contractAddress=${stock.address}`;
+				try {
+					const res = await fetch(`${this.baseUrl}${path}`, {
+						headers: { Accept: "application/json", "Accept-Encoding": "identity", "User-Agent": "binance-web3/1.1 (Skill)" },
+						signal: AbortSignal.timeout(3000),
+					});
+					if (!res.ok) return;
+					const json = (await res.json()) as {
+						code?: string;
+						data?: { tokenInfo?: { price?: string }; stockInfo?: { price?: string } };
+					};
+					const tokenPrice = Number(json.data?.tokenInfo?.price);
+					const stockPrice = Number(json.data?.stockInfo?.price);
+					officialRwaData[stock.symbol] = {
+						tokenPrice: Number.isFinite(tokenPrice) && tokenPrice > 0 ? tokenPrice : undefined,
+						stockPrice: Number.isFinite(stockPrice) && stockPrice > 0 ? stockPrice : undefined,
+					};
+				} catch {
+					// Public Binance RWA data is unavailable; retain the secondary feed.
+				}
+			}),
+		);
 
 		// Fallback storico per ticker di mercato
 		const apiPrices: Record<string, number> = {};
@@ -276,26 +258,23 @@ export class BinanceRwaClient {
 				? { refPrice: liveBenchmark.refPrice, prevClose: liveBenchmark.prevClose }
 				: (FALLBACK_TRADFI_BENCHMARKS[stock.underlyingTicker] || { refPrice: 100, prevClose: 100 });
 			
-			// Il reference price è ora prioritizzato sulla Web3 API ufficiale
-			const tradFiPrice = authenticatedRwaPrices[stock.symbol] ?? fallbackRef.refPrice;
+			const official = officialRwaData[stock.symbol];
+			const tradFiPrice = official?.stockPrice ?? fallbackRef.refPrice;
 
 			const realTickerPrice = apiPrices[stock.symbol];
 			
-			// [TODO STEP 3]: Questo fallback fittizio verrà sostituito dal feed live di Birdeye
-			const onChainPrice = realTickerPrice ?? tradFiPrice;
+			const onChainPrice = official?.tokenPrice ?? realTickerPrice ?? tradFiPrice;
 
 			const spreadUsd = parseFloat((onChainPrice - tradFiPrice).toFixed(2));
 			const spreadPct = parseFloat(((spreadUsd / tradFiPrice) * 100).toFixed(2));
-			const baseLiquidity = stock.platform === "Ondo" ? 480000 : stock.platform === "BStock" ? 320000 : 190000;
-
 			return {
 				stock,
 				onChainPriceUsd: onChainPrice,
 				tradFiRefPriceUsd: tradFiPrice,
 				spreadPct,
 				spreadUsd,
-				volume24hUsd: Math.round(onChainPrice * 320),
-				liquidityDepthUsd: baseLiquidity,
+				volume24hUsd: 0,
+				liquidityDepthUsd: 0,
 				marketStatus: marketInfo.status,
 				nextMarketOpenUtc: marketInfo.nextOpen,
 				lastUpdated: now,
@@ -309,42 +288,35 @@ export class BinanceRwaClient {
 			throw new Error("Invalid input amount for swap quote");
 		}
 
-		const stock = VERIFIED_BSC_STOCKS.find(
-			(s) => s.address.toLowerCase() === req.toToken.toLowerCase() || s.address.toLowerCase() === req.fromToken.toLowerCase(),
-		);
-
-		const isBuyingStock = stock && req.toToken.toLowerCase() === stock.address.toLowerCase();
-		const stockPrice = (stock && _STATIC_BENCHMARKS[stock.underlyingTicker]?.refPrice) || 100;
 		const slippage = req.slippagePct ?? 0.5;
-
-		let expectedOutNum = 0;
-		if (isBuyingStock) {
-			expectedOutNum = parsedAmountIn / stockPrice;
-		} else {
-			expectedOutNum = parsedAmountIn * stockPrice;
+		const amountInWei = BigInt(Math.floor(parsedAmountIn * 1e18)).toString();
+		const routeUrl = `https://aggregator-api.kyberswap.com/bsc/api/v1/routes?tokenIn=${req.fromToken}&tokenOut=${req.toToken}&amountIn=${amountInWei}&saveGas=0&gasInclude=1`;
+		const routeResponse = await fetch(routeUrl, { signal: AbortSignal.timeout(5000) });
+		if (!routeResponse.ok) {
+			throw new Error(`Kyber route request failed with HTTP ${routeResponse.status}`);
 		}
 
-		const minOutNum = expectedOutNum * (1 - slippage / 100);
-		const priceImpact = Math.min(0.08, (parsedAmountIn / 50000) * 100);
+		const routePayload = (await routeResponse.json()) as {
+			data?: { routeSummary?: { amountOut?: string; gasUsd?: string } };
+		};
+		const routeSummary = routePayload.data?.routeSummary;
+		const expectedAmountOut = Number(routeSummary?.amountOut) / 1e18;
+		if (!Number.isFinite(expectedAmountOut) || expectedAmountOut <= 0) {
+			throw new Error("Kyber returned no executable route for this asset");
+		}
 
-		const routeType = stock?.platform === "xStock" ? "SWAP" : "RFQ";
-		const venue = stock?.platform === "Ondo" 
-			? "PcsXRfq (Ondo 3-Vendor RFQ)" 
-			: stock?.platform === "BStock" 
-			? "LiquidMesh & PcsXRfq" 
-			: "PancakeSwap V3 AMM";
+		const minAmountOut = expectedAmountOut * (1 - slippage / 100);
 
 		return {
-			routeType,
+			routeType: "SWAP",
 			fromToken: req.fromToken,
 			toToken: req.toToken,
 			amountIn: req.amountIn,
-			expectedAmountOut: expectedOutNum.toFixed(6),
-			minAmountOut: minOutNum.toFixed(6),
-			priceImpactPct: parseFloat(priceImpact.toFixed(2)),
-			estimatedGasUsd: 0.12,
-			providerVenue: venue,
-			toRouterAddress: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+			expectedAmountOut: expectedAmountOut.toFixed(6),
+			minAmountOut: minAmountOut.toFixed(6),
+			priceImpactPct: 0,
+			estimatedGasUsd: Number(routeSummary?.gasUsd) || 0,
+			providerVenue: "KyberSwap Aggregator",
 		};
 	}
 }

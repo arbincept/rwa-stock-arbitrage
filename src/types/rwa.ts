@@ -76,7 +76,7 @@ export interface RwaSwapQuoteResponse {
 	priceImpactPct: number;
 	estimatedGasUsd: number;
 	providerVenue: string;
-	toRouterAddress: `0x${string}`;
+	toRouterAddress?: `0x${string}`;
 }
 
 export interface SimulationResult {
@@ -89,4 +89,9 @@ export interface SimulationResult {
 	isSlippageProtected: boolean;
 	simulationTrace: string;
 	simulatedTimestamp: number;
+	transactionRequest?: {
+		to: `0x${string}`;
+		data: `0x${string}`;
+		value?: string;
+	};
 }

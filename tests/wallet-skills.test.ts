@@ -16,7 +16,7 @@ test("RwaStockArbitrageSkill - exposes standard tool definitions", () => {
 	assert.ok(names.includes("simulate_stock_swap"));
 });
 
-test("RwaStockArbitrageSkill - executes scanMarketHoursGaps", async () => {
+test("RwaStockArbitrageSkill - executes scanMarketHoursGaps", { skip: !process.env.RUN_LIVE_TESTS }, async () => {
 	const skill = new RwaStockArbitrageSkill();
 	const result = await skill.scanMarketHoursGaps(0.20, 1000);
 
@@ -26,7 +26,7 @@ test("RwaStockArbitrageSkill - executes scanMarketHoursGaps", async () => {
 	assert.equal(typeof result.actionableCount, "number");
 });
 
-test("RwaStockArbitrageSkill - executes scanCrossProtocolGaps", async () => {
+test("RwaStockArbitrageSkill - executes scanCrossProtocolGaps", { skip: !process.env.RUN_LIVE_TESTS }, async () => {
 	const skill = new RwaStockArbitrageSkill();
 	const result = await skill.scanCrossProtocolGaps(0.10);
 
@@ -37,14 +37,14 @@ test("RwaStockArbitrageSkill - executes scanCrossProtocolGaps", async () => {
 	assert.ok(tickers.includes("NVDA") || tickers.includes("AAPL") || tickers.includes("SPY"));
 });
 
-test("RwaStockArbitrageSkill - executes simulateStockSwap for valid and invalid tokens", async () => {
+test("RwaStockArbitrageSkill - executes simulateStockSwap for valid and invalid tokens", { skip: !process.env.RUN_LIVE_TESTS }, async () => {
 	const skill = new RwaStockArbitrageSkill();
 	
 	// Valid token
-	const res = await skill.simulateStockSwap("NVDAon", 500);
+	const res = await skill.simulateStockSwap("NVDAON", 500);
 	assert.equal(res.simulation.success, true);
 	assert.ok(["RFQ", "SWAP"].includes(res.quote.routeType));
-	assert.ok(res.simulation.simulationTrace.includes("SUCCESS"));
+	assert.ok(res.simulation.simulationTrace.includes("[AGENT CALL-DATA GENERATED]"));
 	assert.ok(parseFloat(res.quote.expectedAmountOut) > 0);
 
 	// Invalid token throws

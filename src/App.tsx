@@ -22,7 +22,7 @@ function useIsMobile() {
 
 export function App() {
 	const [stocks, setStocks] = useState<StockPriceData[]>([]);
-	const [selectedSymbol, setSelectedSymbol] = useState<string>("NVDAon");
+	const [selectedSymbol, setSelectedSymbol] = useState<string>("NVDAON");
 	const [loading, setLoading] = useState<boolean>(true);
 	const isMobile = useIsMobile();
 
