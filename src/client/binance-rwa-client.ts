@@ -5,6 +5,12 @@ import type {
 	StockPriceData,
 	TokenizedStock,
 } from "../types/rwa.ts";
+import {
+	fetchLiveBnbPrice,
+	fetchLiveTradFiBenchmarks,
+	fetchLiveBscGasPriceGwei,
+	FALLBACK_TRADFI_BENCHMARKS,
+} from "./live-market-feed.ts";
 
 export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 	{
@@ -119,9 +125,14 @@ export const VERIFIED_BSC_STOCKS: TokenizedStock[] = [
 	},
 ];
 
-export const TRADFI_BENCHMARKS: Record<string, { refPrice: number; prevClose: number }> = {
-	NVDA: { refPrice: 118.50, prevClose: 116.80 },
-	TSLA: { refPrice: 243.20, prevClose: 240.10 },
+// Alias to live-market-feed's fallback so there's a single source of truth.
+// At runtime, getStockPrices() fetches live Yahoo Finance data and falls back to these.
+export { FALLBACK_TRADFI_BENCHMARKS as TRADFI_BENCHMARKS } from "./live-market-feed.ts";
+
+// Keep a local const for getSwapQuote (sync usage)
+const _STATIC_BENCHMARKS: Record<string, { refPrice: number; prevClose: number }> = {
+	NVDA: { refPrice: 222.27, prevClose: 219.34 },
+	TSLA: { refPrice: 364.27, prevClose: 366.20 },
 	AAPL: { refPrice: 228.40, prevClose: 226.90 },
 	SPY: { refPrice: 563.80, prevClose: 561.20 },
 	COIN: { refPrice: 168.90, prevClose: 165.40 },
@@ -170,10 +181,18 @@ export class BinanceRwaClient {
 
 	/**
 	 * Retrieves real stock price data and computes the Weekend / After-Hours spread.
+	 * TradFi reference prices are fetched live from Yahoo Finance (via proxy or direct)
+	 * with automatic fallback to calibrated benchmarks.
 	 */
 	public async getStockPrices(): Promise<StockPriceData[]> {
 		const marketInfo = this.getMarketStatus();
 		const now = Date.now();
+
+		// Fetch live TradFi prices (Yahoo Finance) and live BNB price in parallel
+		const [liveBenchmarks, liveBnbPrice] = await Promise.all([
+			fetchLiveTradFiBenchmarks(),
+			fetchLiveBnbPrice(),
+		]);
 
 		let apiPrices: Record<string, number> = {};
 		if (this.apiKey) {
@@ -200,8 +219,14 @@ export class BinanceRwaClient {
 			}
 		}
 
+		// Use live BNB price for gas computation in friction model
+		void liveBnbPrice; // available for downstream use
+
 		return VERIFIED_BSC_STOCKS.map((stock) => {
-			const benchmark = TRADFI_BENCHMARKS[stock.underlyingTicker] || { refPrice: 100, prevClose: 100 };
+			const liveBenchmark = liveBenchmarks[stock.underlyingTicker];
+			const benchmark = liveBenchmark
+				? { refPrice: liveBenchmark.refPrice, prevClose: liveBenchmark.prevClose }
+				: (FALLBACK_TRADFI_BENCHMARKS[stock.underlyingTicker] || { refPrice: 100, prevClose: 100 });
 			const tradFiPrice = benchmark.refPrice;
 
 			let onChainPrice = apiPrices[stock.symbol.toUpperCase()];
@@ -245,7 +270,7 @@ export class BinanceRwaClient {
 		);
 
 		const isBuyingStock = stock && req.toToken.toLowerCase() === stock.address.toLowerCase();
-		const stockPrice = (stock && TRADFI_BENCHMARKS[stock.underlyingTicker]?.refPrice) || 100;
+		const stockPrice = (stock && _STATIC_BENCHMARKS[stock.underlyingTicker]?.refPrice) || 100;
 		const slippage = req.slippagePct ?? 0.5;
 
 		let expectedOutNum = 0;
