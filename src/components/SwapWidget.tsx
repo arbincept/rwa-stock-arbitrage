@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { encodeFunctionData, formatUnits, maxUint256, parseUnits } from 'viem';
 import { simulateRwaSwap } from '../engine/simulator';
 import type { RwaSwapQuoteResponse, StockPriceData } from '../types/rwa';
+import { ERC20_ABI, NATIVE_TOKEN as BNB_NATIVE, isNativeToken, publicClient, readAllowance, readBalance } from '../lib/erc20';
 import { ArrowDown, CheckCircle2, ShieldCheck, Zap, RefreshCw, Wallet } from 'lucide-react';
 
 interface SwapWidgetProps {
@@ -11,7 +13,7 @@ interface SwapWidgetProps {
 
 const BSC_CHAIN_ID = '0x38'; // 56
 const USDT_BSC = '0x55d398326f99059fF775485246999027B3197955' as const;
-const BNB_NATIVE = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const;
+const GAS_RESERVE_BNB = parseUnits('0.004', 18);
 
 export const SwapWidget: React.FC<SwapWidgetProps> = ({
   stocks,
@@ -55,6 +57,8 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   const [preflighted, setPreflighted] = useState<boolean>(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<bigint | null>(null);
+  const [approving, setApproving] = useState<boolean>(false);
 
   const getProvider = () => {
     if (typeof window === 'undefined') return null;
@@ -134,6 +138,28 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     setError(null);
   };
 
+  useEffect(() => {
+    let cancelled = false;
+    setBalance(null);
+    if (!account || !inputToken) return;
+    readBalance(inputToken as `0x${string}`, account as `0x${string}`)
+      .then((value) => { if (!cancelled) setBalance(value); })
+      .catch(() => { if (!cancelled) setBalance(null); });
+    return () => { cancelled = true; };
+  }, [account, inputToken]);
+
+  const setAmountFromBalance = (pct: number) => {
+    if (balance === null) return;
+    const spendable = isNativeToken(inputToken as string)
+      ? (balance > GAS_RESERVE_BNB ? balance - GAS_RESERVE_BNB : 0n)
+      : balance;
+    const scaled = (spendable * BigInt(pct)) / 100n;
+    // Leave a small margin on Max so a live price move between quote and execution can't push the swap over balance.
+    const safe = pct === 100 ? (scaled * 995n) / 1000n : scaled;
+    setAmountIn(formatUnits(safe, 18));
+    resetQuote();
+  };
+
   const handleSimulate = async () => {
     setLoading(true);
     setError(null);
@@ -145,6 +171,9 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       }
       if (!amountIn || Number(amountIn) <= 0) {
         throw new Error('Enter an amount greater than zero.');
+      }
+      if (balance !== null && parseUnits(amountIn, 18) > balance) {
+        throw new Error(`Amount exceeds your available ${inputAsset} balance.`);
       }
 
       const quote = {
@@ -182,6 +211,23 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
 
     try {
       const txRequest = simulation.transactionRequest;
+      const spender = txRequest.to as `0x${string}`;
+
+      if (!isNativeToken(inputToken as string)) {
+        const amountInWei = parseUnits(amountIn, 18);
+        const currentAllowance = await readAllowance(inputToken as `0x${string}`, account as `0x${string}`, spender);
+        if (currentAllowance < amountInWei) {
+          setApproving(true);
+          const approveData = encodeFunctionData({ abi: ERC20_ABI, functionName: 'approve', args: [spender, maxUint256] });
+          const approveHash = await provider.request({
+            method: 'eth_sendTransaction',
+            params: [{ from: account, to: inputToken, data: approveData, value: '0x0' }],
+          });
+          await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 60_000 });
+          setApproving(false);
+        }
+      }
+
       const call = {
         from: account,
         to: txRequest.to,
@@ -211,6 +257,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
     } catch (err: any) {
       setError(err.message || 'Transaction cancelled.');
     } finally {
+      setApproving(false);
       setExecuting(false);
     }
   };
@@ -278,6 +325,23 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
             />
             <span style={{ position: 'absolute', right: 12, top: 11, color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>{inputAsset}</span>
           </div>
+          {account && balance !== null && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, fontSize: 11, color: '#94a3b8' }}>
+              <span>Available: {formatUnits(balance, 18)} {inputAsset}</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[25, 50, 75, 100].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setAmountFromBalance(pct)}
+                    style={{ border: '1px solid #334155', background: '#111827', color: '#c4b5fd', borderRadius: 6, padding: '3px 7px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {pct === 100 ? 'Max' : `${pct}%`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', margin: '-4px 0' }}>
@@ -354,9 +418,9 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
                 <div style={{ color: '#94a3b8' }}><strong>Next:</strong> connect your wallet, then run the preflight before signing.</div>
               </div>
               <details style={{ color: '#64748b', fontSize: 11 }}>
-                <summary style={{ cursor: 'pointer' }}>Dettagli tecnici</summary>
-                <div style={{ marginTop: 7, overflowWrap: 'anywhere' }}>Router Kyber: {simulation.transactionRequest?.to}</div>
-                <div>Gas stimato: {simulation.gasUsed?.toString()} unità</div>
+                <summary style={{ cursor: 'pointer' }}>Technical details</summary>
+                <div style={{ marginTop: 7, overflowWrap: 'anywhere' }}>Kyber router: {simulation.transactionRequest?.to}</div>
+                <div>Estimated gas: {simulation.gasUsed?.toString()} units</div>
               </details>
             </>
           )}
@@ -374,11 +438,11 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       {simulation?.transactionRequest && (
         <button
           onClick={handleExecuteSwap}
-          disabled={executing}
-          style={{ width: '100%', border: 0, borderRadius: 9, background: 'linear-gradient(90deg, #7c3aed, #4f46e5)', color: '#fff', padding: '12px', fontSize: 13, fontWeight: 800, cursor: executing ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
+          disabled={executing || approving}
+          style={{ width: '100%', border: 0, borderRadius: 9, background: 'linear-gradient(90deg, #7c3aed, #4f46e5)', color: '#fff', padding: '12px', fontSize: 13, fontWeight: 800, cursor: (executing || approving) ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
           <ShieldCheck size={16} />
-          {executing ? 'Waiting for wallet signature...' : `Execute ${tradeDirection === 'BUY' ? 'buy' : 'sell'} on BSC`}
+          {approving ? 'Approving token access...' : executing ? 'Waiting for wallet signature...' : `Execute ${tradeDirection === 'BUY' ? 'buy' : 'sell'} on BSC`}
         </button>
       )}
     </div>
