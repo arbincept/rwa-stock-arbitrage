@@ -18,6 +18,33 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   selectedSymbol,
   onSelectStock,
 }) => {
+  const panelStyle: React.CSSProperties = {
+    background: 'linear-gradient(145deg, #111827 0%, #0b1220 100%)',
+    border: '1px solid rgba(148, 163, 184, 0.22)',
+    borderRadius: 16,
+    padding: 20,
+    color: '#f8fafc',
+    boxShadow: '0 18px 48px rgba(0, 0, 0, 0.28)',
+  };
+  const fieldStyle: React.CSSProperties = {
+    width: '100%',
+    boxSizing: 'border-box',
+    background: '#070b12',
+    border: '1px solid #263244',
+    borderRadius: 9,
+    padding: '10px 12px',
+    color: '#f8fafc',
+    fontSize: 14,
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+  };
+  const selectStyle: React.CSSProperties = {
+    background: '#070b12',
+    border: '1px solid #334155',
+    borderRadius: 7,
+    color: '#c4b5fd',
+    padding: '5px 8px',
+    fontSize: 12,
+  };
   const [account, setAccount] = useState<string | null>(null);
   const [inputAsset, setInputAsset] = useState<'USDT' | 'BNB'>('USDT');
   const [amountIn, setAmountIn] = useState<string>('500');
@@ -170,29 +197,29 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-slate-100 shadow-xl space-y-4">
-      <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+    <div style={panelStyle}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, borderBottom: '1px solid #263244', paddingBottom: 14, marginBottom: 18 }}>
         <div>
-          <h3 className="font-bold text-base text-slate-100">Spot Swap & Simulation Engine</h3>
-          <p className="text-xs text-slate-400">KyberSwap Aggregator + 5 bps Arb Inc Fee</p>
+          <h3 style={{ margin: 0, fontSize: 17, color: '#f8fafc' }}>Spot Swap &amp; Simulation Engine</h3>
+          <p style={{ margin: '5px 0 0', fontSize: 12, color: '#94a3b8' }}>KyberSwap Aggregator + 5 bps Arb Inc Fee</p>
         </div>
         {!account ? (
           <button
             onClick={connectWallet}
-            className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-lg shadow-purple-900/20 cursor-pointer"
+            style={{ border: 0, borderRadius: 8, background: '#7c3aed', color: '#fff', padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            <Wallet className="w-3.5 h-3.5" /> Connect Wallet
+            <Wallet size={14} /> Connect Wallet
           </button>
         ) : (
-          <span className="bg-slate-800 border border-slate-700 text-xs px-2.5 py-1 rounded-full text-emerald-400 font-mono">
+          <span style={{ background: '#0f2d25', border: '1px solid #1f6f55', color: '#6ee7b7', borderRadius: 999, padding: '7px 10px', fontSize: 12, fontFamily: 'ui-monospace, monospace' }}>
             {account.slice(0, 6)}...{account.slice(-4)}
           </span>
         )}
       </div>
 
-      <div className="space-y-3">
+      <div style={{ display: 'grid', gap: 14 }}>
         <div>
-          <div className="flex justify-between text-xs text-slate-400 mb-1">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6, color: '#94a3b8', fontSize: 12 }}>
             <span>Pay</span>
             <select
               value={inputAsset}
@@ -201,14 +228,14 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
                 setSimulation(null);
                 setPreflighted(false);
               }}
-              className="bg-slate-950 border border-slate-800 text-xs text-purple-300 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer"
+              style={selectStyle}
             >
               <option value="USDT">USDT</option>
               <option value="BNB">BNB</option>
             </select>
             <span>BSC Mainnet</span>
           </div>
-          <div className="relative">
+          <div style={{ position: 'relative' }}>
             <input
               type="number"
               value={amountIn}
@@ -217,20 +244,20 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
                 setSimulation(null);
                 setPreflighted(false);
               }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500 font-mono"
+              style={{ ...fieldStyle, paddingRight: 64 }}
             />
-            <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">{inputAsset}</span>
+            <span style={{ position: 'absolute', right: 12, top: 11, color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>{inputAsset}</span>
           </div>
         </div>
 
-        <div className="flex justify-center -my-1">
-          <div className="bg-slate-800 p-1.5 rounded-full border border-slate-700 text-purple-400">
-            <ArrowDown className="w-4 h-4" />
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '-4px 0' }}>
+          <div style={{ background: '#1e293b', padding: 7, borderRadius: 999, border: '1px solid #334155', color: '#a78bfa' }}>
+            <ArrowDown size={16} />
           </div>
         </div>
 
         <div>
-          <div className="flex justify-between text-xs text-slate-400 mb-1">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6, color: '#94a3b8', fontSize: 12 }}>
             <span>Receive (Target Asset)</span>
             <select
               value={selectedSymbol}
@@ -239,7 +266,7 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
                 setSimulation(null);
                 setPreflighted(false);
               }}
-              className="bg-slate-950 border border-slate-800 text-xs text-purple-300 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer"
+              style={{ ...selectStyle, maxWidth: '64%' }}
             >
               {stocks && stocks.map((s) => (
                 <option key={s.stock.symbol} value={s.stock.symbol}>
@@ -248,16 +275,16 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
               ))}
             </select>
           </div>
-          <div className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm font-mono text-purple-300 flex justify-between items-center">
+          <div style={{ ...fieldStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#c4b5fd' }}>
             <span>{simulation ? simulation.simulatedAmountOut : '0.00'}</span>
-            <span className="text-xs text-slate-400 font-sans">{selectedSymbol} (BSC)</span>
+            <span style={{ color: '#94a3b8', fontSize: 12, fontFamily: 'inherit' }}>{selectedSymbol} (BSC)</span>
           </div>
         </div>
 
         <button
           onClick={handleSimulate}
           disabled={loading}
-          className="w-full bg-slate-800 hover:bg-slate-700 text-purple-300 font-medium py-2 rounded-lg text-sm transition border border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
+          style={{ width: '100%', border: '1px solid #3b4960', borderRadius: 9, background: '#1e293b', color: '#c4b5fd', padding: '11px 12px', fontSize: 13, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
           {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
           {loading ? 'Simulazione in corso...' : `Simula Zero-Risk ${selectedSymbol} Swap`}
@@ -265,21 +292,21 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
       </div>
 
       {simulation && (
-        <div className="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono space-y-1">
-          <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-            <CheckCircle2 className="w-4 h-4" />
+        <div style={{ background: '#070b12', border: '1px solid #263244', borderRadius: 10, padding: 12, fontSize: 12, fontFamily: 'ui-monospace, monospace', display: 'grid', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6ee7b7', fontWeight: 700 }}>
+            <CheckCircle2 size={16} />
             {simulation.success ? (preflighted ? 'Preflight RPC Superato' : 'Calldata Kyber Generato') : 'Errore Simulazione'}
           </div>
-          <div className="text-slate-300">Min Out: {simulation.minAmountOutGuaranteed}</div>
-          <div className="text-slate-300">Est. Gas: {simulation.gasUsed?.toString()} units</div>
-          <div className="text-slate-500 truncate">Router: {simulation.transactionRequest?.to}</div>
+          <div style={{ color: '#cbd5e1' }}>Min Out: {simulation.minAmountOutGuaranteed}</div>
+          <div style={{ color: '#cbd5e1' }}>Est. Gas: {simulation.gasUsed?.toString()} units</div>
+          <div style={{ color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis' }}>Router: {simulation.transactionRequest?.to}</div>
         </div>
       )}
 
-      {error && <div className="bg-red-950/50 border border-red-800 text-red-300 p-2 rounded-lg text-xs">{error}</div>}
+      {error && <div style={{ background: '#2a1015', border: '1px solid #7f1d1d', color: '#fca5a5', padding: 10, borderRadius: 9, fontSize: 12 }}>{error}</div>}
 
       {txHash && (
-        <div className="bg-emerald-950/50 border border-emerald-800 text-emerald-300 p-2 rounded-lg text-xs break-all">
+        <div style={{ background: '#06251c', border: '1px solid #166534', color: '#86efac', padding: 10, borderRadius: 9, fontSize: 12, wordBreak: 'break-word' }}>
           🎉 Tx Inviata! Hash: <a href={`https://bscscan.com/tx/${txHash}`} target="_blank" rel="noreferrer" className="underline">{txHash}</a>
         </div>
       )}
@@ -288,9 +315,9 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
         <button
           onClick={handleExecuteSwap}
           disabled={executing}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 cursor-pointer"
+          style={{ width: '100%', border: 0, borderRadius: 9, background: 'linear-gradient(90deg, #7c3aed, #4f46e5)', color: '#fff', padding: '12px', fontSize: 13, fontWeight: 800, cursor: executing ? 'wait' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
-          <ShieldCheck className="w-4 h-4" />
+          <ShieldCheck size={16} />
           {executing ? 'Firma nel wallet...' : `Esegui ${selectedSymbol} Swap su BSC Mainnet`}
         </button>
       )}

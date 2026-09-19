@@ -1,7 +1,7 @@
 // Service Worker — RWA Suite PWA
 // Strategy: Network-first for API calls, Cache-first for static assets
 
-const CACHE_NAME = "rwa-suite-v1";
+const CACHE_NAME = "rwa-suite-v2";
 const STATIC_ASSETS = ["/", "/index.html"];
 
 self.addEventListener("install", (event) => {
@@ -25,13 +25,21 @@ self.addEventListener("fetch", (event) => {
 
   // Network-first for API routes and external data sources
   if (
+    url.pathname === "/" ||
+    url.pathname === "/index.html" ||
     url.pathname.startsWith("/api/") ||
     url.hostname.includes("binance.com") ||
     url.hostname.includes("yahoo.com") ||
     url.hostname.includes("binance.org")
   ) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request).then((response) => {
+        if (response.ok && event.request.method === "GET") {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
     );
     return;
   }

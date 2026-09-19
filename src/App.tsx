@@ -233,7 +233,7 @@ export function App() {
 					<span>•</span>
 					<span>Binance Web3 RWA APIs</span>
 					<span>•</span>
-					<span>17/17 Tests ✓</span>
+						<span>Live route checks ✓</span>
 				</div>
 			</footer>
 		</div>
