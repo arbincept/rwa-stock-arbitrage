@@ -6,7 +6,11 @@
 [![Tests](https://img.shields.io/badge/Tests-unit%20%2B%20live%20integration-5271B4?style=for-the-badge)](https://github.com/arbincept/rwa-stock-arbitrage)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-> **Submission candidate for BNB Hackathons: Tokenized Stocks Edition. The project is now opensource and free to be copied or used from others peoples**  
+>  ## 🚀 Project Status & Architecture Notes
+
+This project is **fully functional, open-source, and free to be used, copied, or modified** by anyone in the community! 
+> The live version uses **KyberSwap** as the primary on-chain aggregator/swap...  we recommend migrating from KyberSwap to the official **Binance Web3 API**
+> https://www.bnbchain.org/en/hackathons/tokenized-stocks?tab=resources check here for all addtional official resources.
 > Built by **Arbitrage Inception** (`@arbincept`) • Author: **Luca Celebrano**
 
 **Live deployment:** https://rwa-stock-arbitrage.vercel.app  
