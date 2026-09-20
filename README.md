@@ -6,7 +6,7 @@
 [![Tests](https://img.shields.io/badge/Tests-unit%20%2B%20live%20integration-5271B4?style=for-the-badge)](https://github.com/arbincept/rwa-stock-arbitrage)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-> **Live submission candidate for BNB Hack: Tokenized Stocks Edition**
+> **Live submission candidate for BNB Hackathons: Tokenized Stocks Edition**
 > Built by **Arbitrage Inception** (`@arbincept`) • Author: **Luca Celebrano**
 
 **Live deployment:** https://rwa-stock-arbitrage.vercel.app  
