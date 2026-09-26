@@ -190,7 +190,7 @@ export function App() {
 				gridTemplateColumns: isMobile ? "1fr" : "1fr 380px",
 				gap: "20px",
 			}}>
-				<div>
+				<div style={{ minWidth: 0 }}>
 					<StockTable
 						stocks={stocks}
 						onSelectStock={(sym) => setSelectedSymbol(sym)}
@@ -198,7 +198,7 @@ export function App() {
 					/>
 				</div>
 
-				<div>
+				<div style={{ minWidth: 0 }}>
 					<SwapWidget
 						stocks={stocks}
 						selectedSymbol={selectedSymbol}

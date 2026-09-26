@@ -29,6 +29,9 @@ export const StockTable: React.FC<Props> = ({
 
 	return (
 		<div style={{
+			width: "100%",
+			boxSizing: "border-box",
+			minWidth: 0,
 			background: "#0d1117",
 			border: "1px solid rgba(255, 255, 255, 0.08)",
 			borderRadius: "16px",

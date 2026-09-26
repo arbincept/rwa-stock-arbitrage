@@ -21,6 +21,9 @@ export const SwapWidget: React.FC<SwapWidgetProps> = ({
   onSelectStock,
 }) => {
   const panelStyle: React.CSSProperties = {
+    width: '100%',
+    boxSizing: 'border-box',
+    minWidth: 0,
     background: 'linear-gradient(145deg, #111827 0%, #0b1220 100%)',
     border: '1px solid rgba(148, 163, 184, 0.22)',
     borderRadius: 16,

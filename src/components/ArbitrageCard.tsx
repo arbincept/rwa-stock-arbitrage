@@ -19,12 +19,14 @@ export const ArbitrageCard: React.FC<Props> = ({
 	return (
 		<div style={{
 			display: "grid",
-			gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+			gridTemplateColumns: "repeat(auto-fit, minmax(min(360px, 100%), 1fr))",
 			gap: "20px",
 			marginBottom: "28px",
+			minWidth: 0,
 		}}>
 			{/* Market-Hours Arbitrage Box */}
 			<div style={{
+				minWidth: 0,
 				background: "linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 27, 75, 0.5) 100%)",
 				border: "1px solid rgba(139, 92, 246, 0.3)",
 				borderRadius: "16px",
@@ -131,6 +133,7 @@ export const ArbitrageCard: React.FC<Props> = ({
 
 			{/* Cross-Protocol Arbitrage Box */}
 			<div style={{
+				minWidth: 0,
 				background: "linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(6, 78, 59, 0.4) 100%)",
 				border: "1px solid rgba(16, 185, 129, 0.3)",
 				borderRadius: "16px",
