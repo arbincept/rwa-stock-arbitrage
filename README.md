@@ -17,6 +17,12 @@ This project is **fully functional, open-source, and free to be used, copied, or
 **Network:** BNB Smart Chain Mainnet (ChainID `56`)  
 **Data policy:** market data and token catalog are loaded from real Binance Web3 RWA and DexScreener endpoints; no synthetic prices or fake token addresses are used.
 
+## Live UI Preview
+
+![BNB Chain RWA Arbitrage Suite live dashboard](./docs/live-dashboard.png)
+
+This capture shows the public dashboard with RWA asset monitoring, market-hours and cross-protocol spread panels, plus the spot swap simulator. Market data and detected opportunities change with the live endpoints.
+
 ---
 
 ## 🎯 Hackathon Track Alignment
