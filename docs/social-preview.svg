@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title description">
+  <title id="title">RWA Stock Arbitrage Suite — by Lukecele</title>
+  <desc id="description">Explore tokenized-stock price gaps on BNB Chain. Market-hours gaps, wrapper spreads, and swap simulation.</desc>
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#8b5cf6" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="640" fill="#08090d"/>
+  <ellipse cx="1150" cy="235" rx="440" ry="440" fill="url(#glow)"/>
+  <rect width="1280" height="8" fill="url(#accent)"/>
+  <g fill="none" stroke="#8b5cf6" stroke-opacity=".2">
+    <path d="M1120 132v304m48-244v244m48-188v188"/>
+    <path d="M1088 436h144"/>
+  </g>
+  <g font-family="'DejaVu Sans', Arial, sans-serif">
+    <text x="72" y="86" fill="#f8fafc" font-size="38" font-weight="700">RWA Stock Arbitrage Suite</text>
+    <text x="72" y="218" fill="#f8fafc" font-size="68" font-weight="700">Explore tokenized-stock</text>
+    <text x="72" y="300" fill="#f8fafc" font-size="68" font-weight="700">price gaps on</text>
+    <text x="72" y="382" fill="#c4b5fd" font-size="68" font-weight="700">BNB Chain</text>
+    <text x="72" y="450" fill="#cbd5e1" font-size="25">Market-hours gaps · Wrapper spreads · Swap simulation</text>
+    <path d="M72 498h1136" stroke="#334155"/>
+    <text x="72" y="562" fill="#f8fafc" font-size="44" font-weight="700">by Lukecele</text>
+    <text x="1208" y="562" text-anchor="end" fill="#cbd5e1" font-size="23">Arbitrage Inception</text>
+    <text x="72" y="601" fill="#94a3b8" font-size="21">github.com/arbincept/rwa-stock-arbitrage</text>
+  </g>
+</svg>
