@@ -2,6 +2,8 @@
 
 # RWA Stock Arbitrage Suite
 
+[![CI](https://github.com/arbincept/rwa-stock-arbitrage/actions/workflows/ci.yml/badge.svg)](https://github.com/arbincept/rwa-stock-arbitrage/actions/workflows/ci.yml)
+
 **Explore the gap between stock-market hours and on-chain prices.**
 
 Built and maintained by **[Luca Celebrano · @Lukecele](https://github.com/Lukecele)**, founder of [Arbitrage Inception](https://github.com/arbincept).
