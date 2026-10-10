@@ -3,8 +3,9 @@
 # RWA Stock Arbitrage Suite
 
 [![CI](https://github.com/arbincept/rwa-stock-arbitrage/actions/workflows/ci.yml/badge.svg)](https://github.com/arbincept/rwa-stock-arbitrage/actions/workflows/ci.yml)
+[![PWA Ready](https://img.shields.io/badge/PWA-Installable-8B5CF6?logo=pwa&logoColor=white)](https://rwa-stock-arbitrage.vercel.app)
 
-**Explore the gap between stock-market hours and on-chain prices.**
+**Explore the gap between stock-market hours and on-chain prices. Installable Progressive Web App (PWA) with offline caching.**
 
 Built and maintained by **[Luca Celebrano · @Lukecele](https://github.com/Lukecele)**, founder of [Arbitrage Inception](https://github.com/arbincept).
 
