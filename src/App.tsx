@@ -210,30 +210,78 @@ export function App() {
 			{/* Footer */}
 			<footer style={{
 				marginTop: "40px",
-				paddingTop: "20px",
+				paddingTop: "24px",
 				borderTop: "1px solid rgba(255, 255, 255, 0.08)",
 				display: "flex",
-				flexWrap: "wrap",
-				justifyContent: "space-between",
-				alignItems: "center",
-				gap: "8px",
+				flexDirection: "column",
+				gap: "16px",
 				fontSize: "11px",
 				color: "#64748b",
 			}}>
-				<div>
-					Built for <strong style={{ color: "#cbd5e1" }}>BNB Hack: Tokenized Stocks Edition</strong> by{" "}
-					<a href="https://github.com/arbincept" target="_blank" rel="noreferrer" style={{ color: "#8b5cf6", textDecoration: "none" }}>
-						Arbitrage Inception
-					</a>
+				<div style={{
+					display: "flex",
+					flexWrap: "wrap",
+					justifyContent: "space-between",
+					alignItems: "center",
+					gap: "12px",
+				}}>
+					<div>
+						Built for <strong style={{ color: "#cbd5e1" }}>BNB Hack: Tokenized Stocks Edition</strong> by{" "}
+						<a href="https://github.com/arbincept" target="_blank" rel="noreferrer" style={{ color: "#8b5cf6", textDecoration: "none", fontWeight: "bold" }}>
+							Arbitrage Inception (@arbincept)
+						</a>
+						{" "}• Maintainer: <a href="https://github.com/Lukecele" target="_blank" rel="noreferrer" style={{ color: "#cbd5e1", textDecoration: "none" }}>@Lukecele</a>
+					</div>
+					<div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+						<a
+							href="https://github.com/arbincept/rwa-stock-arbitrage/blob/main/LICENSE"
+							target="_blank"
+							rel="noreferrer"
+							style={{
+								padding: "3px 8px",
+								borderRadius: "4px",
+								backgroundColor: "rgba(139, 92, 246, 0.15)",
+								border: "1px solid rgba(139, 92, 246, 0.4)",
+								color: "#c4b5fd",
+								textDecoration: "none",
+								fontWeight: "600",
+								fontSize: "10px",
+								fontFamily: "monospace"
+							}}
+						>
+							Licenza Libera MIT (100% Free)
+						</a>
+						<span style={{
+							padding: "3px 8px",
+							borderRadius: "4px",
+							backgroundColor: "rgba(16, 185, 129, 0.15)",
+							border: "1px solid rgba(16, 185, 129, 0.4)",
+							color: "#6ee7b7",
+							fontSize: "10px",
+							fontFamily: "monospace"
+						}}>
+							100% Gratuito & No-Profit
+						</span>
+						<a
+							href="https://github.com/arbincept/rwa-stock-arbitrage"
+							target="_blank"
+							rel="noreferrer"
+							style={{ color: "#94a3b8", textDecoration: "none" }}
+						>
+							GitHub Code
+						</a>
+					</div>
 				</div>
-				<div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-					<span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-						<Terminal size={12} /> Agentic Wallet Skill
-					</span>
-					<span>•</span>
-					<span>Binance Web3 RWA APIs</span>
-					<span>•</span>
-						<span>Live route checks ✓</span>
+
+				<div style={{
+					padding: "12px 16px",
+					borderRadius: "8px",
+					backgroundColor: "rgba(15, 23, 42, 0.6)",
+					border: "1px solid rgba(255, 255, 255, 0.05)",
+					lineHeight: "1.6",
+					color: "#94a3b8"
+				}}>
+					<strong style={{ color: "#e2e8f0" }}>⚖️ Informativa Legale, Licenza d'Uso & Disclaimer Non-Finanziario:</strong> Questo portale e l'intero codice sorgente sono rilasciati sotto licenza open source libera <strong>MIT</strong>, gratuiti e liberamente riutilizzabili per fini educativi e di ricerca accademica. Questo applicativo è un simulatore matematico di telemetria on-chain e NON costituisce in alcun modo sollecitazione al pubblico risparmio, consulenza finanziaria o raccomandazione di investimento.
 				</div>
 			</footer>
 		</div>
