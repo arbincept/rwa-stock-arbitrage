@@ -249,7 +249,7 @@ export function App() {
 								fontFamily: "monospace"
 							}}
 						>
-							Licenza Libera MIT (100% Free)
+							MIT License (100% Free)
 						</a>
 						<span style={{
 							padding: "3px 8px",
@@ -260,7 +260,7 @@ export function App() {
 							fontSize: "10px",
 							fontFamily: "monospace"
 						}}>
-							100% Gratuito & No-Profit
+							100% Free & Open Source
 						</span>
 						<a
 							href="https://github.com/arbincept/rwa-stock-arbitrage"
@@ -281,7 +281,7 @@ export function App() {
 					lineHeight: "1.6",
 					color: "#94a3b8"
 				}}>
-					<strong style={{ color: "#e2e8f0" }}>⚖️ Informativa Legale, Licenza d'Uso & Disclaimer Non-Finanziario:</strong> Questo portale e l'intero codice sorgente sono rilasciati sotto licenza open source libera <strong>MIT</strong>, gratuiti e liberamente riutilizzabili per fini educativi e di ricerca accademica. Questo applicativo è un simulatore matematico di telemetria on-chain e NON costituisce in alcun modo sollecitazione al pubblico risparmio, consulenza finanziaria o raccomandazione di investimento.
+					<strong style={{ color: "#e2e8f0" }}>⚖️ Legal Notice, Open-Source License & Non-Financial Disclaimer:</strong> This portal and its entire codebase are released free of charge under the open-source <strong>MIT License</strong> for educational and academic research purposes. Zero proprietary copyright reserved. This application is an on-chain telemetry and simulation tool and does NOT constitute investment advice, financial solicitation, or recommendations to trade.
 				</div>
 			</footer>
 		</div>
