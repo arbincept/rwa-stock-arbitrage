@@ -2,6 +2,8 @@
 
 # RWA Stock Arbitrage Suite
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Status: 100% Free & Open Source](https://img.shields.io/badge/Status-100%25%20Free%20%26%20Open%20Source-gold)](LICENSE)
 [![CI](https://github.com/arbincept/rwa-stock-arbitrage/actions/workflows/ci.yml/badge.svg)](https://github.com/arbincept/rwa-stock-arbitrage/actions/workflows/ci.yml)
 [![PWA Ready](https://img.shields.io/badge/PWA-Installable-8B5CF6?logo=pwa&logoColor=white)](https://rwa-stock-arbitrage.vercel.app)
 
